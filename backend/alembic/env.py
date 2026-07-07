@@ -18,6 +18,7 @@ from app.modules.compliance.models import ConsentEvent  # noqa: F401
 from app.modules.quota.models import AnonymousUsage  # noqa: F401
 from app.modules.upload.models import Recording  # noqa: F401
 from app.modules.scoring.models import Score  # noqa: F401
+from app.modules.progress.models import PhonemeScore  # noqa: F401
 
 # Alembic config object from alembic.ini
 alembic_config = context.config

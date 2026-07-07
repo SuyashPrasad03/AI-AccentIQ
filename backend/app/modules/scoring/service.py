@@ -15,6 +15,7 @@ from app.modules.scoring.formula import score_recording
 from app.modules.scoring.models import Score
 from app.modules.scoring.schemas import ScoreResponse, WordScoreOut
 from app.modules.upload.models import Recording
+from app.modules.progress.models import PhonemeScore
 
 logger = get_logger(__name__)
 
@@ -72,6 +73,9 @@ async def run_scoring_job(recording_id: str) -> None:
                 accuracy_score=result["accuracy_score"],
             )
             db.add(score_record)
+
+            # 4b. Store per-phoneme scores for progress comparisons
+            await _store_phoneme_scores(db, recording_id, result["word_scores"])
 
             # 5. Update recording status → scored
             await db.execute(
@@ -139,3 +143,28 @@ async def _set_failed(db: AsyncSession, recording_id: str) -> None:
         await db.commit()
     except Exception:
         pass
+
+
+async def _store_phoneme_scores(
+    db: AsyncSession, recording_id: str, word_scores: list[dict]
+) -> None:
+    """
+    Aggregate per-phoneme accuracy from word scores and store in phoneme_scores table.
+    Groups by expected phoneme, averages the word_score for words containing that phoneme.
+    """
+    from collections import defaultdict
+
+    phoneme_totals = defaultdict(list)
+
+    for ws in word_scores:
+        for phoneme in ws.get("expected_phonemes", []):
+            phoneme_totals[phoneme].append(ws["word_score"])
+
+    for phoneme, scores in phoneme_totals.items():
+        avg_score = sum(scores) / len(scores) if scores else 0.0
+        record = PhonemeScore(
+            recording_id=recording_id,
+            phoneme=phoneme,
+            accuracy_score=round(avg_score, 1),
+        )
+        db.add(record)
