@@ -11,8 +11,11 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 from app.core.settings import settings
 # Import Base so all models are registered before autogenerate runs.
-# As new modules add models, import them here:
+# Add new model imports here as each phase introduces tables.
 from app.db.mysql.base import Base  # noqa: F401 — triggers model registration
+from app.modules.auth.models import OtpCode, RefreshToken, User  # noqa: F401
+from app.modules.compliance.models import ConsentEvent  # noqa: F401
+from app.modules.quota.models import AnonymousUsage  # noqa: F401
 
 # Alembic config object from alembic.ini
 alembic_config = context.config
