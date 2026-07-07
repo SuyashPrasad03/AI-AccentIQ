@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { initAuth, selectAuthLoading } from "./store/authSlice.js";
 import { Navbar } from "./components/Navbar.jsx";
 import { HomePage } from "./pages/HomePage.jsx";
+import { AssistantWidget } from "./features/rag-assistant/AssistantWidget.jsx";
 import "./App.css";
 
 export default function App() {
@@ -31,11 +32,8 @@ export default function App() {
       <Navbar />
       <Routes>
         <Route path="/" element={<HomePage />} />
-        {/* Future routes added per phase:
-            <Route path="/practice" element={<PracticePage />} />
-            <Route path="/progress" element={<ProgressPage />} />
-        */}
       </Routes>
+      <AssistantWidget />
     </BrowserRouter>
   );
 }
