@@ -22,6 +22,7 @@ from app.modules.auth.router import router as auth_router
 from app.modules.compliance.router import router as compliance_router
 from app.modules.health.router import router as health_router
 from app.modules.quota.router import router as quota_router
+from app.modules.upload.router import router as upload_router
 
 logger = get_logger(__name__)
 
@@ -76,6 +77,7 @@ def create_app() -> FastAPI:
     app.include_router(auth_router)       # /auth/*
     app.include_router(quota_router)      # /quota/*
     app.include_router(compliance_router) # /consent/*
+    app.include_router(upload_router)     # /recordings/*
 
     # Future modules (uncomment as phases are implemented):
     # app.include_router(recordings_router, prefix="/recordings")
@@ -83,7 +85,7 @@ def create_app() -> FastAPI:
     # app.include_router(progress_router, prefix="/progress")
     # app.include_router(assistant_router, prefix="/assistant")
 
-    logger.info("app_created", routers=["health", "auth", "quota", "compliance"])
+    logger.info("app_created", routers=["health", "auth", "quota", "compliance", "recordings"])
     return app
 
 
