@@ -5,7 +5,7 @@ Upload router — /recordings/* endpoints.
   GET  /recordings/{id}     — get recording metadata by ID
 """
 
-from fastapi import APIRouter, Depends, Request, Response, UploadFile, File
+from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response, UploadFile, File
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -23,6 +23,7 @@ from app.modules.quota.service import check_quota_or_raise
 from app.modules.upload import service as upload_service
 from app.modules.upload.models import Recording
 from app.modules.upload.schemas import RecordingOut, UploadResponse
+from app.modules.transcription.service import run_transcription_job
 
 router = APIRouter(prefix="/recordings", tags=["recordings"])
 
@@ -53,6 +54,7 @@ def _ensure_anon_session(identity: Identity, response: Response) -> Identity:
 async def upload_recording(
     request: Request,
     response: Response,
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(..., description="Audio file (15-45 seconds)"),
     identity: Identity = Depends(get_current_identity),
     db: AsyncSession = Depends(get_db),
@@ -91,9 +93,12 @@ async def upload_recording(
         db=db,
     )
 
+    # Trigger transcription as a background job (non-blocking)
+    background_tasks.add_task(run_transcription_job, recording.id)
+
     return UploadResponse(
         recording=RecordingOut.model_validate(recording),
-        message="Recording uploaded and preprocessed successfully.",
+        message="Recording uploaded and preprocessed successfully. Transcription started.",
     )
 
 
