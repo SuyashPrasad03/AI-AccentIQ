@@ -2,17 +2,16 @@ import { useState, useEffect } from "react";
 import { getScore } from "../../api/scoring.js";
 import { ScoreCard } from "./ScoreCard.jsx";
 import { HighlightedTranscript } from "./HighlightedTranscript.jsx";
+import { ExplainMistakeModal } from "./ExplainMistakeModal.jsx";
 
 /**
  * ResultsView — displays the full scoring results after processing completes.
- *
- * Props:
- *   recordingId — the recording to fetch scores for
  */
 export function ResultsView({ recordingId }) {
   const [score, setScore] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [explainTarget, setExplainTarget] = useState(null); // { wordData, index }
 
   useEffect(() => {
     if (!recordingId) return;
@@ -21,6 +20,12 @@ export function ResultsView({ recordingId }) {
       .then((data) => { setScore(data); setLoading(false); })
       .catch((err) => { setError(err.message); setLoading(false); });
   }, [recordingId]);
+
+  const handleWordClick = (wordData, index) => {
+    if (wordData.detected_issue !== "correct") {
+      setExplainTarget({ wordData, index });
+    }
+  };
 
   if (loading) {
     return (
@@ -47,10 +52,7 @@ export function ResultsView({ recordingId }) {
 
       <HighlightedTranscript
         wordScores={score.word_scores}
-        onWordClick={(w) => {
-          // Phase 6 will add the "Explain My Mistake" modal here
-          console.log("Word clicked:", w);
-        }}
+        onWordClick={handleWordClick}
       />
 
       {score.weak_phonemes && score.weak_phonemes.length > 0 && (
@@ -62,6 +64,15 @@ export function ResultsView({ recordingId }) {
             ))}
           </div>
         </div>
+      )}
+
+      {explainTarget && (
+        <ExplainMistakeModal
+          recordingId={recordingId}
+          wordIndex={explainTarget.index}
+          wordData={explainTarget.wordData}
+          onClose={() => setExplainTarget(null)}
+        />
       )}
     </div>
   );

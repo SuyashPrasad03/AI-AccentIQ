@@ -25,6 +25,7 @@ from app.modules.quota.router import router as quota_router
 from app.modules.upload.router import router as upload_router
 from app.modules.transcription.router import router as transcription_router
 from app.modules.scoring.router import router as scoring_router
+from app.modules.feedback.router import router as feedback_router
 
 logger = get_logger(__name__)
 
@@ -82,6 +83,7 @@ def create_app() -> FastAPI:
     app.include_router(upload_router)     # /recordings/*
     app.include_router(transcription_router) # /recordings/{id}/status, /recordings/{id}/transcript
     app.include_router(scoring_router)       # /recordings/{id}/score
+    app.include_router(feedback_router)      # /recordings/{id}/words/{idx}/explain
 
     # Future modules (uncomment as phases are implemented):
     # app.include_router(recordings_router, prefix="/recordings")
