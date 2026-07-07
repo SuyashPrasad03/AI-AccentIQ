@@ -499,3 +499,58 @@
 .practice-cached-note {
   margin-top: 0.75rem; font-size: 0.75rem; color: #94a3b8; text-align: center;
 }
+
+/* ── Progress comparison ─────────────────────────────────────── */
+.progress-card {
+  background: #fff; border: 1px solid #e2e8f0;
+  border-radius: 0.75rem; padding: 1.25rem;
+}
+.progress-empty { text-align: center; color: #64748b; font-size: 0.9rem; }
+.progress-title { font-size: 1rem; font-weight: 700; color: #1e293b; margin-bottom: 1rem; }
+.delta-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
+.delta-card {
+  background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.5rem;
+  padding: 0.75rem; text-align: center; display: flex; flex-direction: column; gap: 0.3rem;
+}
+.delta-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+.delta-values { display: flex; align-items: center; justify-content: center; gap: 0.4rem; }
+.delta-prev { font-size: 1.1rem; color: #94a3b8; }
+.delta-arrow { color: #94a3b8; }
+.delta-curr { font-size: 1.3rem; font-weight: 700; color: #1e293b; }
+.delta-badge {
+  font-size: 0.8rem; font-weight: 700; padding: 0.15rem 0.5rem;
+  border-radius: 9999px; display: inline-block;
+}
+.delta-positive { background: #dcfce7; color: #15803d; }
+.delta-negative { background: #fee2e2; color: #dc2626; }
+.delta-neutral { background: #f1f5f9; color: #64748b; }
+
+.phoneme-deltas { margin-top: 1rem; }
+.phoneme-deltas h4 { font-size: 0.82rem; color: #64748b; margin-bottom: 0.5rem; text-transform: uppercase; }
+.phoneme-delta-list { display: flex; flex-direction: column; gap: 0.4rem; }
+.phoneme-delta-row {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.35rem 0.5rem; background: #f8fafc; border-radius: 0.35rem;
+}
+.phoneme-delta-label { font-family: monospace; font-weight: 600; min-width: 2rem; }
+.phoneme-delta-values { font-size: 0.85rem; color: #334155; }
+
+/* ── History chart ───────────────────────────────────────────── */
+.history-chart-card {
+  background: #fff; border: 1px solid #e2e8f0;
+  border-radius: 0.75rem; padding: 1.25rem;
+}
+.history-title { font-size: 1rem; font-weight: 700; color: #1e293b; margin-bottom: 0.75rem; }
+.history-bars {
+  display: flex; align-items: flex-end; gap: 4px; height: 120px;
+  padding: 0.25rem 0; overflow-x: auto;
+}
+.history-bar-col {
+  display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 1; min-width: 20px;
+}
+.history-bar {
+  width: 100%; background: #4f46e5; border-radius: 3px 3px 0 0;
+  min-height: 4px; transition: height 0.3s;
+}
+.history-bar-label { font-size: 0.65rem; color: #64748b; }
+.history-total { font-size: 0.75rem; color: #94a3b8; text-align: center; margin-top: 0.5rem; }
