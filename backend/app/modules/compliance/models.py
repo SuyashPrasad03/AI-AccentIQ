@@ -36,3 +36,18 @@ class ConsentEvent(Base):
     granted_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+
+
+class DataDeletionRequest(Base):
+    """Auditable record of every account deletion request (DPDP requirement)."""
+    __tablename__ = "data_deletion_requests"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    user_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    requested_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    summary: Mapped[str | None] = mapped_column(String(2000), nullable=True)
