@@ -26,3 +26,12 @@ class ConsentStatusResponse(BaseModel):
     has_audio_processing_consent: bool
     has_privacy_policy_consent: bool
     policy_version: str
+
+
+class DataSummaryResponse(BaseModel):
+    user_id: str
+    email: str
+    recordings_count: int
+    consent_events_count: int
+    audio_retention_days: int
+    account_created_at: datetime
