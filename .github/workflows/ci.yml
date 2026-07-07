@@ -7,7 +7,7 @@ on:
     branches: ["**"]
 
 jobs:
-  # ── Backend: lint + unit tests ──────────────────────────────
+  # ── Backend: lint + unit tests ─────────────────────────────────
   backend:
     name: Backend (Python 3.11)
     runs-on: ubuntu-latest
@@ -55,6 +55,8 @@ jobs:
       STORAGE_BACKEND: local
       STORAGE_LOCAL_ROOT: /tmp/pronunciation_test_storage
       EMAIL_CONSOLE_FALLBACK: "true"
+      PRIVACY_POLICY_VERSION: "1.0"
+      ANONYMOUS_FREE_ANALYSES: "3"
 
     steps:
       - name: Checkout code
@@ -73,15 +75,15 @@ jobs:
       - name: Lint with ruff
         run: ruff check .
 
-      - name: Type check with ruff format (check only)
+      - name: Check formatting with ruff
         run: ruff format --check .
 
       - name: Run tests
         run: pytest --cov=app --cov-report=term-missing -v
 
-  # ── Frontend: lint + type-check ─────────────────────────────
+  # ── Frontend: lint + build ─────────────────────────────────────
   frontend:
-    name: Frontend (Node 20)
+    name: Frontend (Node 20 — React JS)
     runs-on: ubuntu-latest
 
     defaults:
@@ -105,10 +107,7 @@ jobs:
       - name: Lint with ESLint
         run: npm run lint
 
-      - name: Type-check with tsc
-        run: npm run type-check
-
-      - name: Build (validates no compile errors)
+      - name: Build (validates bundling)
         run: npm run build
         env:
           VITE_API_BASE_URL: http://localhost:8000
