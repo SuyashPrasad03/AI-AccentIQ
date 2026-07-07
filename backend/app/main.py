@@ -28,6 +28,7 @@ from app.modules.scoring.router import router as scoring_router
 from app.modules.feedback.router import router as feedback_router
 from app.modules.practice_generator.router import router as practice_router
 from app.modules.progress.router import router as progress_router
+from app.modules.rag.router import router as rag_router
 
 logger = get_logger(__name__)
 
@@ -41,6 +42,10 @@ async def lifespan(app: FastAPI):
     # Initialise MongoDB connection
     await init_mongo()
     logger.info("mongo_connected")
+
+    # Index knowledge base for RAG assistant (idempotent — only ingests if empty)
+    from app.modules.rag.ingest import ensure_kb_indexed
+    await ensure_kb_indexed()
 
     yield  # Application is running
 
@@ -88,6 +93,7 @@ def create_app() -> FastAPI:
     app.include_router(feedback_router)      # /recordings/{id}/words/{idx}/explain
     app.include_router(practice_router)      # /practice/*
     app.include_router(progress_router)      # /progress/*, /recordings/{id}/comparison
+    app.include_router(rag_router)           # /assistant/*
 
     # Future modules (uncomment as phases are implemented):
     # app.include_router(recordings_router, prefix="/recordings")
