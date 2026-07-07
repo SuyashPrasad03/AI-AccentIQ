@@ -11,15 +11,17 @@ Tests can spin up isolated instances via:
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 
 from app.core.exceptions import AppException, app_exception_handler, unhandled_exception_handler
 from app.core.logging import configure_logging, get_logger
 from app.core.settings import settings
 from app.db.mongo.client import close_mongo, init_mongo
+from app.modules.auth.router import router as auth_router
+from app.modules.compliance.router import router as compliance_router
 from app.modules.health.router import router as health_router
+from app.modules.quota.router import router as quota_router
 
 logger = get_logger(__name__)
 
@@ -50,7 +52,7 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title="AI Pronunciation Coach",
         description="Backend API for the AI-powered pronunciation coaching platform.",
-        version="0.1.0",
+        version="0.2.0",
         docs_url="/docs" if settings.app_env != "production" else None,
         redoc_url="/redoc" if settings.app_env != "production" else None,
         lifespan=lifespan,
@@ -71,17 +73,17 @@ def create_app() -> FastAPI:
 
     # ── Routers ───────────────────────────────────────────────
     app.include_router(health_router)
+    app.include_router(auth_router)       # /auth/*
+    app.include_router(quota_router)      # /quota/*
+    app.include_router(compliance_router) # /consent/*
 
-    # Future modules will be registered here as phases are implemented:
-    # app.include_router(auth_router, prefix="/auth")
-    # app.include_router(quota_router, prefix="/quota")
+    # Future modules (uncomment as phases are implemented):
     # app.include_router(recordings_router, prefix="/recordings")
     # app.include_router(practice_router, prefix="/practice")
     # app.include_router(progress_router, prefix="/progress")
     # app.include_router(assistant_router, prefix="/assistant")
-    # app.include_router(compliance_router)
 
-    logger.info("app_created", routers=["health"])
+    logger.info("app_created", routers=["health", "auth", "quota", "compliance"])
     return app
 
 
