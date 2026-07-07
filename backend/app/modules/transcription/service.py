@@ -87,6 +87,10 @@ async def run_transcription_job(recording_id: str) -> None:
                 word_count=len(transcript_data["words"]),
             )
 
+            # 7. Trigger scoring pipeline (chained background job)
+            from app.modules.scoring.service import run_scoring_job
+            await run_scoring_job(recording_id)
+
         except Exception as exc:
             # On any failure: mark as failed, store error reason, never hang
             logger.error(
