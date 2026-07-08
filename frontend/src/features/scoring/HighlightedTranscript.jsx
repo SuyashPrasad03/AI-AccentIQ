@@ -7,11 +7,11 @@ export function HighlightedTranscript({ wordScores, onWordClick }) {
 
   const getStyle = (issue) => {
     switch (issue) {
-      case "correct": return "bg-success-soft text-success border-success/20 hover:bg-success/10";
-      case "mispronounced": return "bg-danger-soft text-danger border-danger/20 hover:bg-danger/10";
-      case "unclear": return "bg-warning-soft text-warning border-warning/20 hover:bg-warning/10";
-      case "mistimed": return "bg-secondary-soft text-secondary border-secondary/20 hover:bg-secondary/10";
-      default: return "bg-bg-soft text-ink-muted border-border";
+      case "correct": return "bg-green-100 text-green-800 border-green-300 hover:bg-green-200";
+      case "mispronounced": return "bg-red-100 text-red-800 border-red-300 hover:bg-red-200";
+      case "unclear": return "bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200";
+      case "mistimed": return "bg-orange-100 text-orange-800 border-orange-300 hover:bg-orange-200";
+      default: return "bg-gray-100 text-gray-600 border-gray-300";
     }
   };
 
@@ -37,11 +37,10 @@ export function HighlightedTranscript({ wordScores, onWordClick }) {
           >
             {w.word}
 
-            {/* Tooltip */}
             {tooltip?.index === i && w.detected_issue !== "correct" && (
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 pointer-events-none animate-fade-in">
                 <div className="bg-ink text-white text-[11px] rounded-lg px-3 py-2 shadow-lg whitespace-nowrap max-w-[200px]">
-                  <div className="font-semibold mb-0.5">{w.detected_issue}</div>
+                  <div className="font-semibold mb-0.5 capitalize">{w.detected_issue}</div>
                   {w.expected_phonemes?.length > 0 && (
                     <div className="font-mono text-[10px] opacity-80">
                       Expected: /{w.expected_phonemes.join("")}/
@@ -53,7 +52,6 @@ export function HighlightedTranscript({ wordScores, onWordClick }) {
                     </div>
                   )}
                   <div className="text-[10px] opacity-70 mt-0.5">Score: {Math.round(w.word_score)}</div>
-                  {/* Arrow */}
                   <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-ink rotate-45 -mt-1" />
                 </div>
               </div>
@@ -64,10 +62,10 @@ export function HighlightedTranscript({ wordScores, onWordClick }) {
 
       {/* Legend */}
       <div className="flex flex-wrap gap-4 pt-3 border-t border-border-soft">
-        <Legend color="bg-success" label="Correct" />
-        <Legend color="bg-danger" label="Mispronounced" />
-        <Legend color="bg-warning" label="Unclear" />
-        <Legend color="bg-secondary" label="Mistimed" />
+        <Legend color="bg-green-500" label="Correct" />
+        <Legend color="bg-red-500" label="Mispronounced" />
+        <Legend color="bg-amber-500" label="Unclear" />
+        <Legend color="bg-orange-500" label="Mistimed" />
       </div>
     </div>
   );
