@@ -87,7 +87,7 @@
         <mxCell id="e_proc" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="dashboard" target="processing" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
 
         <!-- Processing sub-items -->
-        <mxCell id="proc_items" value="→ WhisperX Transcription&#xa;→ Forced Alignment (word-level)&#xa;→ Phonemizer (IPA reference)&#xa;→ Phoneme Distance Scoring&#xa;→ Confidence + Timing Analysis&#xa;→ Score Calculation (0-100)&#xa;→ Weak Phoneme Detection" style="text;html=1;align=left;verticalAlign=top;fontSize=8;fontColor=#333333;" vertex="1" parent="1">
+        <mxCell id="proc_items" value="→ Deepgram Transcription&#xa;→ Forced Alignment (word-level)&#xa;→ Phonemizer (IPA reference)&#xa;→ Phoneme Distance Scoring&#xa;→ Confidence + Timing Analysis&#xa;→ Score Calculation (0-100)&#xa;→ Weak Phoneme Detection" style="text;html=1;align=left;verticalAlign=top;fontSize=8;fontColor=#333333;" vertex="1" parent="1">
           <mxGeometry x="870" y="270" width="190" height="100" as="geometry" />
         </mxCell>
         <mxCell id="e_proc_items" style="edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#999999;" edge="1" source="processing" target="proc_items" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
@@ -176,7 +176,7 @@
         <mxCell id="e_quota" style="edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" source="anon" target="quota" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
 
         <!-- Tech Stack Box -->
-        <mxCell id="tech" value="TECH STACK&#xa;━━━━━━━━━━━━━━━━━━━━&#xa;Frontend: React + Vite + Tailwind&#xa;Backend: FastAPI (Python 3.11)&#xa;ASR: WhisperX + Forced Alignment&#xa;Phonemes: Phonemizer (espeak-ng)&#xa;LLM: Gemini via OpenRouter&#xa;DB: MySQL + MongoDB&#xa;Storage: Local (S3-adapter ready)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=8;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
+        <mxCell id="tech" value="TECH STACK&#xa;━━━━━━━━━━━━━━━━━━━━&#xa;Frontend: React + Vite + Tailwind&#xa;Backend: FastAPI (Python 3.11)&#xa;ASR: Deepgram + Forced Alignment&#xa;Phonemes: Phonemizer (espeak-ng)&#xa;LLM: Gemini via OpenRouter&#xa;DB: MySQL + MongoDB&#xa;Storage: Local (S3-adapter ready)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=8;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
           <mxGeometry x="1100" y="500" width="210" height="140" as="geometry" />
         </mxCell>
 

@@ -10,7 +10,7 @@
 2. [Tech Stack & Why Each Choice](#2-tech-stack--why-each-choice)
 3. [Authentication & Identity System](#3-authentication--identity-system)
 4. [Audio Upload & Preprocessing](#4-audio-upload--preprocessing)
-5. [Speech Recognition (WhisperX)](#5-speech-recognition-whisperx)
+5. [Speech Recognition (Deepgram)](#5-speech-recognition-deepgram)
 6. [Pronunciation Scoring Engine](#6-pronunciation-scoring-engine)
 7. [AI Feedback — "Explain My Mistake"](#7-ai-feedback--explain-my-mistake)
 8. [Personalized Practice Generator](#8-personalized-practice-generator)
@@ -49,7 +49,7 @@ Record/Upload Audio → AI Processes → See Score → Click Word → Get AI Coa
 ### Backend: FastAPI (Python 3.11)
 **What**: The web framework handling all API requests.
 **Why FastAPI specifically**:
-- **Async-first**: MongoDB (Motor), WhisperX, and HTTP calls to OpenRouter all benefit from async/await. Django is sync by default.
+- **Async-first**: MongoDB (Motor), Deepgram, and HTTP calls to OpenRouter all benefit from async/await. Django is sync by default.
 - **Pydantic native**: Every request/response is validated automatically via type hints. No separate serializer layer needed.
 - **Auto-generated docs**: Swagger UI at `/docs` — evaluators can explore the API immediately.
 - **Performance**: One of the fastest Python frameworks (comparable to Node.js for I/O workloads).
@@ -75,17 +75,17 @@ Record/Upload Audio → AI Processes → See Score → Click Word → Get AI Coa
 - MongoDB's schema flexibility lets us evolve the document shape as the scoring algorithm improves without migration pain.
 - Accessed via Motor (async driver matching FastAPI's async model).
 
-### Speech Recognition: WhisperX
+### Speech Recognition: Deepgram
 **What**: Converts audio to text with word-level timestamps.
-**Why WhisperX over plain Whisper**:
-- **Forced alignment**: WhisperX adds wav2vec2-based alignment giving precise start/end times for EACH WORD. Plain Whisper only gives approximate segment timestamps.
+**Why Deepgram over plain Whisper**:
+- **Forced alignment**: Deepgram adds wav2vec2-based alignment giving precise start/end times for EACH WORD. Plain Whisper only gives approximate segment timestamps.
 - This is critical because the scoring engine needs to know exactly where each word starts/ends to assess timing, identify pauses, and map mistakes to specific positions.
 - Model: `small` (good accuracy/speed tradeoff on CPU, ~30s processing for 30s audio).
 
 ### Audio Preprocessing: FFmpeg
-**What**: Normalizes uploaded audio to a consistent format before WhisperX processes it.
+**What**: Normalizes uploaded audio to a consistent format before Deepgram processes it.
 **How**: Converts any input (MP3, M4A, WebM, etc.) → 16kHz mono WAV (PCM s16le).
-**Why**: WhisperX expects 16kHz mono input. Without normalization, accuracy drops significantly on stereo/high-sample-rate/compressed inputs.
+**Why**: Deepgram expects 16kHz mono input. Without normalization, accuracy drops significantly on stereo/high-sample-rate/compressed inputs.
 
 ### Phoneme Reference: Phonemizer (espeak-ng)
 **What**: Converts English text to IPA (International Phonetic Alphabet) phonemes.
@@ -171,22 +171,22 @@ Client-side checks are UX niceties (instant feedback), but a modified client cou
 
 ---
 
-## 5. Speech Recognition (WhisperX)
+## 5. Speech Recognition (Deepgram)
 
 ### What happens in the transcription job
 
 ```python
-# 1. Load WhisperX model (cached after first call)
-model = whisperx.load_model("small", device="cpu")
+# 1. Load Deepgram model (cached after first call)
+model = deepgram.load_model("small", device="cpu")
 
 # 2. Transcribe
-audio = whisperx.load_audio(audio_path)
+audio = deepgram.load_audio(audio_path)
 result = model.transcribe(audio)
 # Result: segments with approximate timestamps
 
 # 3. Forced alignment
-align_model = whisperx.load_align_model(language_code="en")
-aligned = whisperx.align(result["segments"], align_model, audio)
+align_model = deepgram.load_align_model(language_code="en")
+aligned = deepgram.align(result["segments"], align_model, audio)
 # Result: WORD-LEVEL timestamps and confidence scores
 ```
 
@@ -202,19 +202,19 @@ aligned = whisperx.align(result["segments"], align_model, audio)
     {"word": "up", "start": 1.20, "end": 1.45, "confidence": 0.94}
   ],
   "language": "en",
-  "model_version": "whisperx-small-en"
+  "model_version": "deepgram-small-en"
 }
 ```
 
 ### Why background job, not synchronous?
-WhisperX on CPU takes 15-30 seconds. Blocking the HTTP response that long is terrible UX. Instead:
+Deepgram on CPU takes 15-30 seconds. Blocking the HTTP response that long is terrible UX. Instead:
 - Upload returns immediately (201) with a recording ID
 - Frontend polls `GET /recordings/{id}/status` every 2.5 seconds
 - Backend flips status: `uploaded → processing → transcribed → scored`
 - Frontend shows staged progress UI
 
 ### Mock fallback
-When WhisperX isn't installed (CI, lightweight dev), a mock returns plausible fake transcripts with varied confidence. This lets the full pipeline work end-to-end without the ~3GB ML dependency.
+When Deepgram isn't installed (CI, lightweight dev), a mock returns plausible fake transcripts with varied confidence. This lets the full pipeline work end-to-end without the ~3GB ML dependency.
 
 ---
 
@@ -227,7 +227,7 @@ word_score = 60% × confidence_component + 20% × timing_component + 20% × phon
 ```
 
 #### Component 1: Confidence (60% weight)
-- Source: WhisperX's per-word confidence (0.0 to 1.0)
+- Source: Deepgram's per-word confidence (0.0 to 1.0)
 - Logic: `confidence × 100` → maps to 0-100
 - Why 60%: ASR confidence is the strongest single signal for whether a word was pronounced clearly
 
@@ -482,7 +482,7 @@ India's Digital Personal Data Protection Act 2023. Requires:
 
 | Collection | Purpose |
 |---|---|
-| `transcripts` | Word-level timestamped transcripts from WhisperX |
+| `transcripts` | Word-level timestamped transcripts from Deepgram |
 | `phoneme_analysis` | Full per-word scoring breakdown with expected/detected phonemes |
 | `practice_sets` | Daily practice sentences per user (cached) |
 | `mistake_explanations` | Cached AI explanations keyed by mistake pattern |
@@ -564,7 +564,7 @@ cd pronunciation-coach
 cd backend
 python3.11 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-pip install whisperx torch torchaudio phonemizer sentence-transformers
+pip install deepgram torch torchaudio phonemizer sentence-transformers
 
 # Create DB
 mysql -u root -p -e "CREATE DATABASE pronunciation_coach CHARACTER SET utf8mb4;"
@@ -610,7 +610,7 @@ Password: Test1234!
 
 This application demonstrates:
 1. **Full-stack engineering** — React frontend + FastAPI backend + dual-database architecture
-2. **Real AI/ML pipeline** — WhisperX ASR → Phonemizer → scoring engine → Gemini feedback
+2. **Real AI/ML pipeline** — Deepgram ASR → Phonemizer → scoring engine → Gemini feedback
 3. **Production patterns** — auth, rate limiting, background jobs, structured errors, storage adapters
 4. **Data compliance** — DPDP consent, retention, deletion (not bolted on, structural)
 5. **Honest trade-offs** — every shortcut documented with an explicit upgrade path

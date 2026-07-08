@@ -83,7 +83,7 @@ export function DashboardPage() {
             <div>
               <h4 className="font-display font-bold text-xs text-ink uppercase tracking-wider mb-2">Built with</h4>
               <ul className="space-y-1.5 text-xs text-ink-muted">
-                <li>WhisperX (ASR)</li>
+                <li>Deepgram (ASR)</li>
                 <li>FastAPI (Backend)</li>
                 <li>React (Frontend)</li>
                 <li>Gemini via OpenRouter</li>

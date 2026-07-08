@@ -7,7 +7,7 @@
 - Anonymous usage data (session identifiers, analysis count)
 
 ## How We Use Your Data
-- Audio recordings are processed solely for pronunciation analysis using WhisperX speech recognition technology.
+- Audio recordings are processed solely for pronunciation analysis using Deepgram speech recognition technology.
 - Your recordings are NEVER sent to third-party AI services. Only text-based phonetic metadata is sent to our LLM provider (Gemini via OpenRouter) for generating feedback explanations.
 - We do not sell or share your personal data with third parties.
 

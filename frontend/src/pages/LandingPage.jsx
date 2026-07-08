@@ -79,7 +79,7 @@ export function LandingPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {[
               { step: 1, icon: "⬆️", title: "Upload Audio", desc: "Upload a 30–45 second English recording or record directly.", color: "primary" },
-              { step: 2, icon: "🔊", title: "Speech Recognition", desc: "WhisperX transcribes with word-level timestamps.", color: "primary" },
+              { step: 2, icon: "🔊", title: "Speech Recognition", desc: "Deepgram transcribes with word-level timestamps.", color: "primary" },
               { step: 3, icon: "🧠", title: "AI Analysis", desc: "Phoneme comparison identifies which sounds need work.", color: "secondary" },
               { step: 4, icon: "📊", title: "Detailed Report", desc: "Get your score, highlighted mistakes, and coaching tips.", color: "primary" },
             ].map((s) => (
@@ -171,7 +171,7 @@ export function LandingPage() {
             <div>
               <h4 className="font-display font-bold text-xs text-ink uppercase tracking-wider mb-3">Built with</h4>
               <ul className="space-y-2 text-sm text-ink-muted">
-                <li>WhisperX (ASR)</li>
+                <li>Deepgram (ASR)</li>
                 <li>FastAPI (Backend)</li>
                 <li>React (Frontend)</li>
                 <li>Gemini via OpenRouter</li>
