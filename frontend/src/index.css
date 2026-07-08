@@ -9,23 +9,23 @@
   --color-ink-muted: #6B7280;
   --color-ink-faint: #9CA3AF;
 
-  /* ── Primary (blue) — product actions, CTAs, links, info ── */
+  /* ── Primary (deep maroon) — product actions, CTAs, links ── */
   --color-primary: #991B1B;
   --color-primary-hover: #7F1D1D;
   --color-primary-soft: #FEF2F2;
   --color-primary-dark: #7F1D1D;
 
-  /* ── Secondary (darker maroon) — emphasis moments ──────── */
+  /* ── Secondary (brighter brick-red) — emphasis ─────────── */
   --color-secondary: #B91C1C;
   --color-secondary-soft: #FEF2F2;
   --color-secondary-hover: #991B1B;
 
-  /* ── Semantic ──────────────────────────────────────────── */
-  --color-success: #22C55E;
-  --color-success-soft: #F0FDF4;
-  --color-warning: #F59E0B;
-  --color-warning-soft: #FFFBEB;
-  --color-danger: #EF4444;
+  /* ── Semantic (all maroon-family — muted tones, not colorful) ── */
+  --color-success: #991B1B;
+  --color-success-soft: #FEF2F2;
+  --color-warning: #7F1D1D;
+  --color-warning-soft: #FEF2F2;
+  --color-danger: #450A0A;
   --color-danger-soft: #FEF2F2;
 
   /* ── Structural ────────────────────────────────────────── */
@@ -45,7 +45,7 @@
   --radius-xl: 20px;
   --radius-pill: 999px;
 
-  /* ── Shadows (soft, warm-tinted) ────────────────────────── */
+  /* ── Shadows (soft, maroon-tinted) ───────────────────────── */
   --shadow-sm: 0 2px 8px rgba(153, 27, 27, 0.04);
   --shadow-md: 0 4px 24px rgba(153, 27, 27, 0.06);
   --shadow-lg: 0 8px 32px rgba(153, 27, 27, 0.08);

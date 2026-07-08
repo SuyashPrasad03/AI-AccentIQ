@@ -52,14 +52,14 @@ export function LandingPage() {
               {[0,1,2,3,4,5,6,7,8,9,10,11].map((i) => (
                 <rect key={i} x={80 + i * 16} y={140 - Math.sin(i * 0.8) * 40}
                   width="6" height={40 + Math.sin(i * 0.8) * 40} rx="3"
-                  fill={i % 3 === 0 ? "#B91C1C" : "#991B1B"} opacity={0.15 + (i % 4) * 0.15}
+                  fill={i % 3 === 0 ? "#B91C1C" : "#7F1D1D"} opacity={0.15 + (i % 4) * 0.15}
                   style={{ animation: `breathe ${2 + i * 0.2}s ease-in-out ${i * 0.1}s infinite` }} />
               ))}
               {/* Mic circle */}
-              <circle cx="170" cy="240" r="50" fill="#991B1B" opacity="0.08" />
-              <path d="M170 210 a12 12 0 0 0-12 12v20a12 12 0 0 0 24 0v-20a12 12 0 0 0-12-12z" stroke="#991B1B" strokeWidth="2.5" fill="none" />
-              <path d="M152 238v4a18 18 0 0 0 36 0v-4" stroke="#991B1B" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-              <line x1="170" y1="260" x2="170" y2="270" stroke="#991B1B" strokeWidth="2.5" strokeLinecap="round" />
+              <circle cx="170" cy="240" r="50" fill="#7F1D1D" opacity="0.08" />
+              <path d="M170 210 a12 12 0 0 0-12 12v20a12 12 0 0 0 24 0v-20a12 12 0 0 0-12-12z" stroke="#7F1D1D" strokeWidth="2.5" fill="none" />
+              <path d="M152 238v4a18 18 0 0 0 36 0v-4" stroke="#7F1D1D" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+              <line x1="170" y1="260" x2="170" y2="270" stroke="#7F1D1D" strokeWidth="2.5" strokeLinecap="round" />
               {/* Brain/AI circle (purple) */}
               <circle cx="260" cy="100" r="32" fill="#B91C1C" opacity="0.08" />
               <path d="M248 100c0-6 4-11 9-12 1-5 5-8 10-8 4 0 7 2 9 5 3-2 6-2 9 0 3 2 4 6 3 9 3 2 5 6 4 10-1 4-4 7-8 8" stroke="#B91C1C" strokeWidth="2" fill="none" strokeLinecap="round" />

@@ -4,11 +4,7 @@ import {
   PieChart, Pie, Cell, Legend,
 } from "recharts";
 
-const BLUE = "#3B82F6";
-const PURPLE = "#8B5CF6";
-const SUCCESS = "#22C55E";
-const WARNING = "#F59E0B";
-const DANGER = "#EF4444";
+const MAROON = "#991B1B";
 
 /**
  * ScoreRadar — radar chart of current recording's metrics.
@@ -39,7 +35,7 @@ export function ScoreRadar({ score }) {
         <RadarChart data={data}>
           <PolarGrid stroke="#E5E9FF" />
           <PolarAngleAxis dataKey="metric" tick={{ fontSize: 11, fill: "#6B7280" }} />
-          <Radar name="Score" dataKey="value" stroke={BLUE} fill={BLUE} fillOpacity={0.15} strokeWidth={2} />
+          <Radar name="Score" dataKey="value" stroke={MAROON} fill={MAROON} fillOpacity={0.15} strokeWidth={2} />
         </RadarChart>
       </ResponsiveContainer>
     </div>
@@ -67,7 +63,7 @@ export function ScoreBar({ score }) {
           <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#6B7280" }} axisLine={false} tickLine={false} />
           <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
           <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid #E5E9FF", fontSize: 12 }} />
-          <Bar dataKey="value" fill={BLUE} radius={[6, 6, 0, 0]} />
+          <Bar dataKey="value" fill={MAROON} radius={[6, 6, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -84,10 +80,10 @@ export function MistakePie({ wordScores }) {
   wordScores.forEach((w) => { counts[w.detected_issue] = (counts[w.detected_issue] || 0) + 1; });
 
   const data = [
-    { name: "Correct", value: counts.correct, color: SUCCESS },
-    { name: "Mispronounced", value: counts.mispronounced, color: DANGER },
-    { name: "Unclear", value: counts.unclear, color: WARNING },
-    { name: "Mistimed", value: counts.mistimed, color: PURPLE },
+    { name: "Correct", value: counts.correct, color: "#991B1B" },
+    { name: "Mispronounced", value: counts.mispronounced, color: "#450A0A" },
+    { name: "Unclear", value: counts.unclear, color: "#DC2626" },
+    { name: "Mistimed", value: counts.mistimed, color: "#B91C1C" },
   ].filter((d) => d.value > 0);
 
   return (
