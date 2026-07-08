@@ -22,7 +22,7 @@ export function Navbar() {
       <nav className="sticky top-0 z-50 bg-glass backdrop-blur-xl border-b border-border/50">
         <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
           <button onClick={() => navigate("/")} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#7F1D1D] to-[#B91C1C] flex items-center justify-center">
               <span className="text-white text-xs font-bold">P</span>
             </div>
             <span className="font-display font-bold text-ink text-sm tracking-tight hidden sm:inline">

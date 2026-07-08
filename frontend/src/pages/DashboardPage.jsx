@@ -52,10 +52,48 @@ export function DashboardPage() {
         {consentChecked && hasConsent && <AudioUploader />}
       </main>
 
-      <footer className="border-t border-border py-4 px-6">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <StatusFooterDot />
-          <span className="text-[11px] text-ink-faint">Pronunciation Coach v0.10</span>
+      <footer className="border-t border-border py-8 px-6 mt-auto">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-6">
+            <div>
+              <h4 className="font-display font-bold text-xs text-ink uppercase tracking-wider mb-2">Product</h4>
+              <ul className="space-y-1.5 text-xs text-ink-muted">
+                <li>Upload & Analyze</li>
+                <li>AI Coaching</li>
+                <li>Practice Generator</li>
+                <li>Progress Tracking</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-display font-bold text-xs text-ink uppercase tracking-wider mb-2">Legal</h4>
+              <ul className="space-y-1.5 text-xs text-ink-muted">
+                <li>Privacy Policy</li>
+                <li>Terms of Service</li>
+                <li>DPDP Compliance</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-display font-bold text-xs text-ink uppercase tracking-wider mb-2">Support</h4>
+              <ul className="space-y-1.5 text-xs text-ink-muted">
+                <li>In-App Assistant</li>
+                <li>FAQ</li>
+                <li>Troubleshooting</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-display font-bold text-xs text-ink uppercase tracking-wider mb-2">Built with</h4>
+              <ul className="space-y-1.5 text-xs text-ink-muted">
+                <li>WhisperX (ASR)</li>
+                <li>FastAPI (Backend)</li>
+                <li>React (Frontend)</li>
+                <li>Gemini via OpenRouter</li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-border pt-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <StatusFooterDot />
+            <span className="text-[11px] text-ink-faint">© 2026 Pronunciation Coach · v0.10</span>
+          </div>
         </div>
       </footer>
 
