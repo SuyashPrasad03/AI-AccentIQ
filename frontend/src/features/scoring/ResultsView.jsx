@@ -4,6 +4,8 @@ import { ScoreCard } from "./ScoreCard.jsx";
 import { MetricCards } from "./MetricCards.jsx";
 import { HighlightedTranscript } from "./HighlightedTranscript.jsx";
 import { ExplainMistakeModal } from "./ExplainMistakeModal.jsx";
+import { ScoreRadar, ScoreBar, MistakePie } from "./Charts.jsx";
+import { ExportButtons } from "./ExportButtons.jsx";
 
 export function ResultsView({ recordingId }) {
   const [score, setScore] = useState(null);
@@ -40,10 +42,23 @@ export function ResultsView({ recordingId }) {
   if (!score) return null;
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5" id="results-container">
+      {/* Export actions */}
+      <div className="flex items-center justify-between">
+        <h2 className="font-display font-bold text-lg text-ink">Results</h2>
+        <ExportButtons score={score} recordingId={recordingId} />
+      </div>
+
       <ScoreCard overall={score.overall_score} accuracy={score.accuracy_score} fluency={score.fluency_score} />
       <MetricCards score={score} />
       <HighlightedTranscript wordScores={score.word_scores} onWordClick={handleWordClick} />
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <ScoreRadar score={score} />
+        <MistakePie wordScores={score.word_scores} />
+      </div>
+      <ScoreBar score={score} />
 
       {/* Weak phonemes */}
       {score.weak_phonemes?.length > 0 && (
