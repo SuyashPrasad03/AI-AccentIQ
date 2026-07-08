@@ -83,3 +83,49 @@ async def call_openrouter(
     except Exception as exc:
         logger.error("openrouter_unexpected_error", error=str(exc))
         return None
+
+
+async def call_openrouter_text(
+    system_prompt: str,
+    user_prompt: str,
+) -> str | None:
+    """
+    Call OpenRouter WITHOUT JSON mode — returns plain text.
+    Used by RAG assistant where we want a natural language answer, not structured JSON.
+    """
+    if not settings.openrouter_api_key:
+        return None
+
+    url = f"{settings.openrouter_base_url}/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {settings.openrouter_api_key}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://pronunciation-coach.example.com",
+        "X-Title": "Pronunciation Coach",
+    }
+
+    payload = {
+        "model": settings.openrouter_model,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        "temperature": 0.3,
+        "max_tokens": 500,
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
+            response = await client.post(url, headers=headers, json=payload)
+
+        if response.status_code != 200:
+            logger.error("openrouter_text_error", status=response.status_code)
+            return None
+
+        data = response.json()
+        content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+        return content.strip() if content else None
+
+    except Exception as exc:
+        logger.error("openrouter_text_unexpected_error", error=str(exc))
+        return None

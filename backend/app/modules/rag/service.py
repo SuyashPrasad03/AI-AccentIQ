@@ -12,7 +12,7 @@ Flow:
 
 from app.core.logging import get_logger
 from app.core.settings import settings
-from app.modules.feedback.openrouter_client import call_openrouter
+from app.modules.feedback.openrouter_client import call_openrouter_text
 from app.modules.rag.prompt_templates import REFUSAL_MESSAGE, build_rag_prompt
 from app.modules.rag.schemas import AskResponse
 from app.modules.rag.vector_index import search_similar
@@ -52,27 +52,19 @@ async def ask_assistant(question: str) -> AskResponse:
     context_chunks = [r["text"] for r in results if r["score"] >= threshold * 0.7]
     sources = list(set(r["source_doc"] for r in results if r["score"] >= threshold * 0.7))
 
-    # 4. Call LLM with grounded prompt
+    # 4. Call LLM with grounded prompt (plain text mode, not JSON)
     system_prompt = build_rag_prompt(context_chunks)
-    llm_result = await call_openrouter(system_prompt, question)
+    llm_answer = await call_openrouter_text(system_prompt, question)
 
-    if llm_result is None:
-        # LLM unavailable — attempt to answer from context directly
+    if llm_answer is None:
+        # LLM unavailable — answer from context directly
         logger.warning("rag_llm_unavailable", using="context_summary")
         answer = _synthesize_from_context(context_chunks, question)
         return AskResponse(answer=answer, sources=sources, refused=False)
 
-    # Parse LLM response
-    answer = ""
-    if isinstance(llm_result, dict):
-        answer = llm_result.get("answer", "") or llm_result.get("response", "")
-        if not answer:
-            # LLM might have returned plain text in the JSON
-            answer = str(llm_result.get("text", ""))
-    if isinstance(llm_result, str):
-        answer = llm_result
+    answer = llm_answer.strip()
 
-    if not answer.strip():
+    if not answer:
         answer = _synthesize_from_context(context_chunks, question)
 
     # 5. Check if LLM itself refused (it's instructed to refuse if context insufficient)
