@@ -1,0 +1,12 @@
+{
+  "name": "AI Pronunciation Coach",
+  "short_name": "PronounceAI",
+  "description": "AI-powered English pronunciation analysis with phoneme-level scoring",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#3B82F6",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

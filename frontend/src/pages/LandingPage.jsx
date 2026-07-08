@@ -141,10 +141,46 @@ export function LandingPage() {
       </section>
 
       {/* ── Footer ─────────────────────────────────────────── */}
-      <footer className="border-t border-border py-8 px-6">
-        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-ink-muted">
-          <span>© 2026 Pronunciation Coach · Privacy-first AI</span>
-          <span>Built with FastAPI · React · WhisperX · Gemini</span>
+      <footer className="border-t border-border py-10 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 mb-8">
+            <div>
+              <h4 className="font-display font-bold text-xs text-ink uppercase tracking-wider mb-3">Product</h4>
+              <ul className="space-y-2 text-sm text-ink-muted">
+                <li><button onClick={() => navigate("/app")} className="hover:text-primary transition-colors">Dashboard</button></li>
+                <li><span>Pricing (Free)</span></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-display font-bold text-xs text-ink uppercase tracking-wider mb-3">Legal</h4>
+              <ul className="space-y-2 text-sm text-ink-muted">
+                <li><span>Privacy Policy</span></li>
+                <li><span>Terms of Service</span></li>
+                <li><span>DPDP Compliance</span></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-display font-bold text-xs text-ink uppercase tracking-wider mb-3">Support</h4>
+              <ul className="space-y-2 text-sm text-ink-muted">
+                <li><span>In-App Assistant</span></li>
+                <li><span>FAQ</span></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-display font-bold text-xs text-ink uppercase tracking-wider mb-3">Built with</h4>
+              <ul className="space-y-2 text-sm text-ink-muted">
+                <li>WhisperX (ASR)</li>
+                <li>FastAPI (Backend)</li>
+                <li>React (Frontend)</li>
+                <li>Gemini via OpenRouter</li>
+                <li>MySQL + MongoDB</li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-border pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-ink-faint">
+            <span>© 2026 Pronunciation Coach · v0.10 · Privacy-first AI</span>
+            <span>Made with care for language learners</span>
+          </div>
         </div>
       </footer>
     </div>
