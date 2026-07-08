@@ -132,3 +132,89 @@ async def get_recording(
             raise AuthorizationError(message="You don't have access to this recording.")
 
     return RecordingOut.model_validate(recording)
+
+
+@router.delete(
+    "/{recording_id}",
+    status_code=200,
+    summary="Delete a recording (soft-delete)",
+)
+async def delete_recording(
+    recording_id: str,
+    identity: Identity = Depends(get_current_identity),
+    db: AsyncSession = Depends(get_db),
+):
+    """Soft-delete a recording. Only the owner can delete."""
+    from datetime import UTC, datetime
+    from sqlalchemy import update
+
+    result = await db.execute(
+        select(Recording).where(
+            Recording.id == recording_id,
+            Recording.deleted_at.is_(None),
+        )
+    )
+    recording = result.scalar_one_or_none()
+    if recording is None:
+        raise NotFoundError(message="Recording not found.")
+
+    # Authorization
+    if identity.is_authenticated:
+        if recording.user_id != identity.user_id:
+            raise AuthorizationError(message="You don't have access to this recording.")
+    else:
+        if recording.anon_session_id != identity.anon_session_id:
+            raise AuthorizationError(message="You don't have access to this recording.")
+
+    # Soft-delete
+    await db.execute(
+        update(Recording)
+        .where(Recording.id == recording_id)
+        .values(deleted_at=datetime.now(UTC))
+    )
+
+    return {"message": "Recording deleted.", "recording_id": recording_id}
+
+
+@router.patch(
+    "/{recording_id}",
+    status_code=200,
+    summary="Rename a recording",
+)
+async def rename_recording(
+    recording_id: str,
+    body: dict,
+    identity: Identity = Depends(get_current_identity),
+    db: AsyncSession = Depends(get_db),
+):
+    """Update the title of a recording. Only the owner can rename."""
+    from sqlalchemy import update
+
+    result = await db.execute(
+        select(Recording).where(
+            Recording.id == recording_id,
+            Recording.deleted_at.is_(None),
+        )
+    )
+    recording = result.scalar_one_or_none()
+    if recording is None:
+        raise NotFoundError(message="Recording not found.")
+
+    if identity.is_authenticated:
+        if recording.user_id != identity.user_id:
+            raise AuthorizationError(message="You don't have access to this recording.")
+    else:
+        if recording.anon_session_id != identity.anon_session_id:
+            raise AuthorizationError(message="You don't have access to this recording.")
+
+    new_title = body.get("title", "").strip()
+    if not new_title or len(new_title) > 255:
+        raise ValidationError(message="Title must be 1-255 characters.")
+
+    await db.execute(
+        update(Recording)
+        .where(Recording.id == recording_id)
+        .values(title=new_title)
+    )
+
+    return {"message": "Recording renamed.", "recording_id": recording_id, "title": new_title}

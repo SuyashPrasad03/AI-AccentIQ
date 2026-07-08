@@ -112,6 +112,7 @@ def _mock_transcription(audio_path: str) -> dict:
     """
     Mock transcription for dev/CI when WhisperX is not installed.
     Returns a plausible transcript structure using the file duration.
+    Varies confidence based on audio path hash so different files get different scores.
     """
     from app.modules.upload.validators import get_audio_duration
 
@@ -120,23 +121,36 @@ def _mock_transcription(audio_path: str) -> dict:
     except Exception:
         duration = 30.0
 
-    # Generate mock words spread across the duration
-    mock_text = (
-        "The quick brown fox jumps over the lazy dog "
-        "while thinking about three things that matter"
-    )
+    # Generate varied mock words spread across the duration
+    mock_sentences = [
+        "The quick brown fox jumps over the lazy dog while thinking about three things",
+        "She sells seashells by the seashore every Thursday morning",
+        "Peter picked a peck of pickled peppers from the garden path",
+        "The weather is rather warm this afternoon which is very pleasant",
+        "I think three hundred thirty three thoughts through the night",
+    ]
+
+    # Pick a sentence based on hash of audio path for variety
+    path_hash = sum(ord(c) for c in str(audio_path))
+    mock_text = mock_sentences[path_hash % len(mock_sentences)]
     mock_words_list = mock_text.split()
     word_duration = duration / max(len(mock_words_list), 1)
+
+    # Vary confidence based on path hash — different files get different quality
+    base_confidence = 0.5 + (path_hash % 40) / 100.0  # range 0.50 - 0.89
 
     words = []
     for i, word in enumerate(mock_words_list):
         start = round(i * word_duration, 3)
         end = round((i + 1) * word_duration - 0.05, 3)
+        # Vary confidence per word (some high, some low)
+        word_conf = base_confidence + ((i * 7 + path_hash) % 30 - 15) / 100.0
+        word_conf = max(0.2, min(0.98, word_conf))
         words.append({
             "word": word,
             "start": start,
             "end": end,
-            "confidence": round(0.75 + (i % 5) * 0.05, 3),
+            "confidence": round(word_conf, 3),
         })
 
     return {

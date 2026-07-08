@@ -136,6 +136,7 @@ async def verify_otp_and_create_user(
             email=email,
             password_hash=hash_password(password),
             email_verified_at=now,
+            created_at=now,
         )
         db.add(user)
     else:

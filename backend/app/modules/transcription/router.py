@@ -61,10 +61,22 @@ async def get_recording_status(
     Typical status flow: uploaded → processing → transcribed → scored
     """
     recording = await _get_owned_recording(recording_id, identity, db)
+
+    # Derive stage from status
+    stage_map = {
+        "uploaded": "queued",
+        "processing": "transcribing",
+        "transcribed": "scoring",
+        "scored": "complete",
+        "failed": "failed",
+    }
+    stage = stage_map.get(recording.status, "processing")
+
     return RecordingStatusResponse(
         recording_id=recording.id,
         status=recording.status,
-        error_reason=None,  # Phase 10 adds a dedicated error column
+        stage=stage,
+        error_reason=None,
         duration_seconds=recording.duration_seconds,
         created_at=recording.created_at,
     )

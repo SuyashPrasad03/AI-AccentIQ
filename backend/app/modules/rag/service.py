@@ -32,7 +32,12 @@ async def ask_assistant(question: str) -> AskResponse:
 
     # 2. Check similarity threshold (hard backstop for refusal)
     best_score = results[0]["score"]
-    threshold = settings.rag_similarity_threshold
+
+    # BoW fallback produces much lower similarity scores than real embeddings.
+    # Use a very permissive threshold for BoW — rely on LLM's grounding instruction
+    # for the actual refusal logic instead.
+    from app.modules.rag.embedder import _USE_TRANSFORMERS
+    threshold = settings.rag_similarity_threshold if _USE_TRANSFORMERS else 0.01
 
     if best_score < threshold:
         logger.info(

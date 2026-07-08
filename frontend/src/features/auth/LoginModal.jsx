@@ -5,7 +5,6 @@ import { login, selectAuthError, clearError } from "../../store/authSlice.js";
 export function LoginModal({ onClose, onSwitchToRegister }) {
   const dispatch = useDispatch();
   const authError = useSelector(selectAuthError);
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -20,48 +19,27 @@ export function LoginModal({ onClose, onSwitchToRegister }) {
   };
 
   return (
-    <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Sign in">
-      <div className="modal-box">
-        <button className="modal-close" onClick={onClose} aria-label="Close">✕</button>
-        <h2 className="modal-title">Sign in</h2>
-
-        {authError && (
-          <div className="form-error" role="alert">{authError}</div>
-        )}
-
-        <form onSubmit={handleSubmit} noValidate>
-          <label className="form-label">
-            Email address
-            <input
-              type="email"
-              className="form-input"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              autoComplete="email"
-              required
-            />
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-ink/25 backdrop-blur-sm animate-fade-in">
+      <div className="bg-bg rounded-[var(--radius-card)] shadow-lg w-full max-w-sm p-7 relative animate-slide-up">
+        <button className="absolute top-5 right-5 text-ink-faint hover:text-ink" onClick={onClose}>✕</button>
+        <h2 className="font-bold text-xl text-ink mb-1">Welcome back</h2>
+        <p className="text-sm text-ink-muted mb-6">Sign in to your account</p>
+        {authError && <p className="text-sm text-danger bg-danger-soft rounded-lg px-4 py-2.5 mb-4">{authError}</p>}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <label className="flex flex-col gap-1.5">
+            <span className="text-xs font-semibold text-ink-muted">Email</span>
+            <input type="email" className="px-4 py-3 border border-card-border rounded-[var(--radius-md)] text-sm focus:outline-none focus:border-primary" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" required />
           </label>
-          <label className="form-label">
-            Password
-            <input
-              type="password"
-              className="form-input"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Your password"
-              autoComplete="current-password"
-              required
-            />
+          <label className="flex flex-col gap-1.5">
+            <span className="text-xs font-semibold text-ink-muted">Password</span>
+            <input type="password" className="px-4 py-3 border border-card-border rounded-[var(--radius-md)] text-sm focus:outline-none focus:border-primary" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Your password" required />
           </label>
-          <button className="btn btn-primary" type="submit" disabled={submitting}>
+          <button className="btn-primary w-full mt-2" type="submit" disabled={submitting}>
             {submitting ? "Signing in…" : "Sign in"}
           </button>
         </form>
-
-        <p className="modal-footer-text">
-          No account yet?{" "}
-          <button className="link-btn" onClick={onSwitchToRegister}>Create one</button>
+        <p className="text-xs text-ink-muted text-center mt-5">
+          No account? <button className="text-primary font-semibold hover:underline" onClick={onSwitchToRegister}>Create one</button>
         </p>
       </div>
     </div>

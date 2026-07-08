@@ -1,116 +1,76 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchHealth } from "../api/health.js";
 import { fetchQuota } from "../store/quotaSlice.js";
 import { selectIsAuthenticated } from "../store/authSlice.js";
 import { selectRequiresAuth } from "../store/quotaSlice.js";
 import { ConsentBanner } from "../features/auth/ConsentBanner.jsx";
-import { QuotaBar } from "../components/QuotaBar.jsx";
 import { getConsentStatus } from "../api/quota.js";
 import { RegisterModal } from "../features/auth/RegisterModal.jsx";
 import { AudioUploader } from "../features/upload/AudioUploader.jsx";
+import { StatusFooterDot } from "../features/system-status/StatusFooterDot.jsx";
 
 export function HomePage() {
   const dispatch = useDispatch();
   const isAuth = useSelector(selectIsAuthenticated);
   const requiresAuth = useSelector(selectRequiresAuth);
+  const initCalled = useRef(false);
 
-  const [health, setHealth] = useState(null);
-  const [healthLoading, setHealthLoading] = useState(true);
-  const [healthError, setHealthError] = useState("");
-
-  // Consent state
   const [hasConsent, setHasConsent] = useState(false);
   const [consentChecked, setConsentChecked] = useState(false);
-
-  // Registration prompt
   const [showRegister, setShowRegister] = useState(false);
 
-  // Load health on mount
   useEffect(() => {
-    fetchHealth()
-      .then((d) => { setHealth(d); setHealthLoading(false); })
-      .catch((err) => { setHealthError(err.message); setHealthLoading(false); });
-  }, []);
-
-  // Check existing consent on mount
-  useEffect(() => {
+    if (initCalled.current) return;
+    initCalled.current = true;
     getConsentStatus()
-      .then((s) => {
-        setHasConsent(s.has_audio_processing_consent && s.has_privacy_policy_consent);
-        setConsentChecked(true);
-      })
+      .then((s) => { setHasConsent(s.has_audio_processing_consent && s.has_privacy_policy_consent); setConsentChecked(true); })
       .catch(() => setConsentChecked(true));
-  }, []);
-
-  // Refresh quota after auth state changes
-  useEffect(() => {
     dispatch(fetchQuota());
-  }, [dispatch, isAuth]);
+  }, []); // eslint-disable-line
 
-  // Show register modal when quota is exhausted for anon user
+  const prevAuth = useRef(isAuth);
+  useEffect(() => {
+    if (prevAuth.current !== isAuth) { prevAuth.current = isAuth; dispatch(fetchQuota()); }
+  }, [isAuth, dispatch]);
+
   useEffect(() => {
     if (requiresAuth && !isAuth) setShowRegister(true);
   }, [requiresAuth, isAuth]);
 
   return (
-    <div className="page-container">
-      {/* Health status */}
-      <section className="health-card" aria-label="Service health">
-        {healthLoading && <p className="loading-text">Checking services…</p>}
-        {healthError && (
-          <div className="error-banner" role="alert">
-            <strong>Backend unreachable.</strong>
-            <p>{healthError}</p>
-          </div>
-        )}
-        {health && (
+    <div className="flex-1 flex flex-col">
+      <main className="flex-1 w-full mx-auto px-6 sm:px-10 lg:px-16 py-10 flex flex-col gap-8">
+
+        {consentChecked && !hasConsent && (
           <>
-            <div className={`overall-status ${health.status === "ok" ? "overall-ok" : "overall-degraded"}`}>
-              {health.status === "ok" ? "✅ All Systems Operational" : "⚠️ Degraded"}
-            </div>
-            <div className="status-list">
-              <StatusRow label="Backend" connected />
-              <StatusRow label="MySQL" connected={health.mysql === "connected"} />
-              <StatusRow label="MongoDB" connected={health.mongo === "connected"} />
-            </div>
+            <section className="text-center py-6 animate-fade-in">
+              <span className="pill pill-primary text-[11px] mb-4 inline-block">AI-Powered</span>
+              <h1 className="font-bold text-3xl sm:text-4xl text-ink mb-3 leading-tight">
+                Improve your English<br />pronunciation
+              </h1>
+              <p className="text-ink-muted text-base max-w-md mx-auto">
+                Upload a recording and get instant, personalized feedback on every sound.
+              </p>
+            </section>
+            <ConsentBanner onConsented={() => setHasConsent(true)} />
           </>
         )}
-      </section>
 
-      {/* Quota bar */}
-      <QuotaBar />
+        {consentChecked && hasConsent && (
+          <section className="animate-slide-up">
+            <AudioUploader />
+          </section>
+        )}
+      </main>
 
-      {/* Consent → then Upload */}
-      {consentChecked && !hasConsent && !isAuth && (
-        <ConsentBanner onConsented={() => setHasConsent(true)} />
-      )}
-
-      {consentChecked && (hasConsent || isAuth) && (
-        <AudioUploader />
-      )}
-
-      {showRegister && (
-        <RegisterModal
-          onClose={() => setShowRegister(false)}
-          onSwitchToLogin={() => setShowRegister(false)}
-        />
-      )}
-
-      <footer className="app-footer">
-        <small>Phase 3 — Audio Upload &amp; Preprocessing</small>
+      <footer className="border-t border-card-border py-4 px-6">
+        <div className="w-full flex items-center justify-between">
+          <StatusFooterDot />
+          <span className="text-[11px] text-ink-faint">Pronunciation Coach</span>
+        </div>
       </footer>
-    </div>
-  );
-}
 
-function StatusRow({ label, connected }) {
-  return (
-    <div className="status-row">
-      <span className="status-label">{label}</span>
-      <span className={`status-badge ${connected ? "badge-ok" : "badge-error"}`}>
-        {connected ? "✓ Connected" : "✗ Disconnected"}
-      </span>
+      {showRegister && <RegisterModal onClose={() => setShowRegister(false)} onSwitchToLogin={() => setShowRegister(false)} />}
     </div>
   );
 }

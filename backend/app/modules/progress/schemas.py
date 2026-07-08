@@ -29,6 +29,7 @@ class ComparisonResponse(BaseModel):
 
 class HistoryEntry(BaseModel):
     recording_id: str
+    title: str | None = None
     overall_score: float
     fluency_score: float
     accuracy_score: float

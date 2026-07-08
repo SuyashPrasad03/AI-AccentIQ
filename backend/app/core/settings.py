@@ -7,7 +7,6 @@ Import `settings` from here everywhere — never read os.environ directly.
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import AnyHttpUrl, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -28,14 +27,21 @@ class Settings(BaseSettings):
     # ── Backend server ────────────────────────────────────────
     backend_host: str = "0.0.0.0"
     backend_port: int = 8000
-    cors_origins: list[str] = ["http://localhost:5173"]
+    cors_origins: str = "http://localhost:5173"
 
-    @field_validator("cors_origins", mode="before")
-    @classmethod
-    def parse_cors(cls, v: str | list[str]) -> list[str]:
-        if isinstance(v, str):
-            return [origin.strip() for origin in v.split(",")]
-        return v
+    @property
+    def cors_origins_list(self) -> list[str]:
+        """Parse CORS_ORIGINS as comma-separated or JSON array."""
+        v = self.cors_origins.strip()
+        if v.startswith("["):
+            import json
+            try:
+                parsed = json.loads(v)
+                if isinstance(parsed, list):
+                    return parsed
+            except (json.JSONDecodeError, ValueError):
+                pass
+        return [origin.strip() for origin in v.split(",") if origin.strip()]
 
     # ── MySQL ─────────────────────────────────────────────────
     mysql_host: str = "mysql"
@@ -46,8 +52,10 @@ class Settings(BaseSettings):
 
     @property
     def mysql_dsn(self) -> str:
+        from urllib.parse import quote_plus
+        encoded_password = quote_plus(self.mysql_password)
         return (
-            f"mysql+pymysql://{self.mysql_user}:{self.mysql_password}"
+            f"mysql+pymysql://{self.mysql_user}:{encoded_password}"
             f"@{self.mysql_host}:{self.mysql_port}/{self.mysql_database}"
         )
 
@@ -65,7 +73,7 @@ class Settings(BaseSettings):
     aws_secret_access_key: str = ""
 
     # ── Audio processing ──────────────────────────────────────
-    audio_min_duration_seconds: float = 30.0
+    audio_min_duration_seconds: float = 10.0
     audio_max_duration_seconds: float = 45.0
     audio_max_size_bytes: int = 52_428_800  # 50 MB
 

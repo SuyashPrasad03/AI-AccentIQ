@@ -30,11 +30,12 @@ def _load_model():
         _model = SentenceTransformer(settings.embedding_model)
         _USE_TRANSFORMERS = True
         logger.info("embedder_loaded", model=settings.embedding_model)
-    except ImportError:
+    except Exception as exc:
         logger.warning(
-            "sentence_transformers_not_installed",
+            "sentence_transformers_unavailable",
             fallback="bag_of_words",
-            info="Install sentence-transformers for production-quality embeddings.",
+            error=str(exc)[:200],
+            info="Using BoW fallback. Install sentence-transformers + fix torch for production embeddings.",
         )
         _model = "bow_fallback"
         _USE_TRANSFORMERS = False
@@ -85,15 +86,16 @@ def cosine_similarity(a: list[float], b: list[float]) -> float:
 
 def _bow_embed(text: str, dim: int = 128) -> list[float]:
     """
-    Fallback embedding: hash each word into a fixed-dim vector.
-    Not semantically meaningful, but deterministic and allows
-    the full pipeline to function without ML dependencies.
+    Fallback embedding: hash each stemmed word into a fixed-dim vector.
+    Applies basic suffix stripping so "calculating"/"calculated"/"calculation"
+    map to the same hash bucket, improving paraphrase matching.
     """
     words = text.lower().split()
     vector = [0.0] * dim
 
     for word in words:
-        h = int(hashlib.md5(word.encode()).hexdigest(), 16)
+        stem = _simple_stem(word)
+        h = int(hashlib.md5(stem.encode()).hexdigest(), 16)
         idx = h % dim
         vector[idx] += 1.0
 
@@ -102,3 +104,12 @@ def _bow_embed(text: str, dim: int = 128) -> list[float]:
     if norm > 0:
         vector = [x / norm for x in vector]
     return vector
+
+
+def _simple_stem(word: str) -> str:
+    """Strip common English suffixes for better BoW matching across word forms."""
+    word = word.strip(".,!?;:'\"()[]{}").lower()
+    for suffix in ["ating", "ation", "ting", "tion", "ing", "ated", "ment", "ness", "ive", "ly", "ed", "er", "es", "s"]:
+        if len(word) > len(suffix) + 3 and word.endswith(suffix):
+            return word[:-len(suffix)]
+    return word

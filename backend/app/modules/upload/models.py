@@ -28,6 +28,9 @@ class Recording(Base):
     # Relative path within the storage backend (never absolute, never user-controlled)
     storage_path: Mapped[str] = mapped_column(String(512), nullable=False)
 
+    # User-editable name for this recording
+    title: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
     # Duration of the original upload in seconds (from ffprobe)
     duration_seconds: Mapped[float] = mapped_column(Float, nullable=False)
 

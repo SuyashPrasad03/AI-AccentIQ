@@ -8,6 +8,8 @@ Design decisions:
   - consent_type values follow a controlled vocabulary defined in the schema.
 """
 
+from datetime import UTC, datetime
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -35,6 +37,7 @@ async def record_consent(
         anon_session_id=identity.anon_session_id if not identity.is_authenticated else None,
         consent_type=consent_type,
         policy_version=settings.privacy_policy_version,
+        granted_at=datetime.now(UTC),
     )
     db.add(event)
     await db.flush()
@@ -91,17 +94,20 @@ async def _get_identity_consents(
     db: AsyncSession,
 ) -> list[ConsentEvent]:
     """Fetch all consent events for the current identity."""
+    from sqlalchemy import or_
+
+    conditions = []
+
     if identity.is_authenticated and identity.user_id:
-        result = await db.execute(
-            select(ConsentEvent).where(ConsentEvent.user_id == identity.user_id)
-        )
-    elif identity.anon_session_id:
-        result = await db.execute(
-            select(ConsentEvent).where(
-                ConsentEvent.anon_session_id == identity.anon_session_id
-            )
-        )
-    else:
+        conditions.append(ConsentEvent.user_id == identity.user_id)
+
+    if identity.anon_session_id:
+        conditions.append(ConsentEvent.anon_session_id == identity.anon_session_id)
+
+    if not conditions:
         return []
 
+    result = await db.execute(
+        select(ConsentEvent).where(or_(*conditions))
+    )
     return list(result.scalars().all())

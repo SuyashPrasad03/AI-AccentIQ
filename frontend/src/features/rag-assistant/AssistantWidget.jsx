@@ -1,111 +1,64 @@
 import { useState, useRef, useEffect } from "react";
 import { askAssistant } from "../../api/assistant.js";
 
-/**
- * AssistantWidget — floating chat widget available on every page.
- * Answers only questions about the app (RAG-grounded, refuses out-of-scope).
- */
 export function AssistantWidget() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const messagesEndRef = useRef(null);
+  const endRef = useRef(null);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   const handleSend = async (e) => {
     e.preventDefault();
-    const question = input.trim();
-    if (!question || loading) return;
-
-    setMessages((prev) => [...prev, { role: "user", text: question }]);
-    setInput("");
-    setLoading(true);
-
+    const q = input.trim();
+    if (!q || loading) return;
+    setMessages((p) => [...p, { role: "user", text: q }]);
+    setInput(""); setLoading(true);
     try {
-      const data = await askAssistant(question);
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", text: data.answer, sources: data.sources, refused: data.refused },
-      ]);
-    } catch (err) {
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", text: "Sorry, something went wrong. Please try again.", refused: false },
-      ]);
-    } finally {
-      setLoading(false);
-    }
+      const data = await askAssistant(q);
+      setMessages((p) => [...p, { role: "assistant", text: data.answer }]);
+    } catch (_e) { setMessages((p) => [...p, { role: "assistant", text: "Something went wrong." }]); }
+    finally { setLoading(false); }
   };
 
   return (
     <>
-      {/* Toggle button */}
       <button
-        className="assistant-fab"
+        className="fixed bottom-5 right-5 z-[300] w-12 h-12 rounded-full bg-secondary text-white
+                   flex items-center justify-center shadow-lg text-lg hover:scale-110 transition-transform"
         onClick={() => setOpen(!open)}
-        aria-label={open ? "Close assistant" : "Open assistant"}
-      >
-        {open ? "✕" : "💬"}
-      </button>
+      >{open ? "✕" : "💬"}</button>
 
-      {/* Chat panel */}
       {open && (
-        <div className="assistant-panel" role="dialog" aria-label="App assistant">
-          <div className="assistant-header">
-            <h3>App Assistant</h3>
-            <span className="assistant-scope">I can only help with questions about this app</span>
+        <div className="fixed bottom-20 right-5 z-[300] w-[360px] max-h-[500px] bg-bg rounded-[var(--radius-card)]
+                        shadow-lg border border-card-border flex flex-col overflow-hidden animate-slide-up">
+          <div className="px-5 py-3.5 border-b border-card-border">
+            <h3 className="font-bold text-sm text-ink">App Assistant</h3>
+            <p className="text-[11px] text-ink-faint">I help with questions about this app</p>
           </div>
-
-          <div className="assistant-messages">
+          <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-2.5 min-h-[200px] max-h-[330px]">
             {messages.length === 0 && (
-              <div className="assistant-empty">
-                <p>Ask me anything about:</p>
-                <ul>
-                  <li>How scoring works</li>
-                  <li>Privacy &amp; data handling</li>
-                  <li>How to use features</li>
-                  <li>Troubleshooting issues</li>
-                </ul>
+              <div className="text-xs text-ink-faint py-4 text-center">
+                <p className="mb-1.5">Try asking:</p>
+                <p className="italic">"How is my score calculated?"</p>
+                <p className="italic">"What happens to my audio?"</p>
               </div>
             )}
-
             {messages.map((msg, i) => (
-              <div key={i} className={`assistant-msg msg-${msg.role}`}>
-                <p>{msg.text}</p>
-                {msg.sources && msg.sources.length > 0 && (
-                  <span className="msg-sources">
-                    Sources: {msg.sources.join(", ")}
-                  </span>
-                )}
+              <div key={i} className={`max-w-[85%] px-3.5 py-2.5 rounded-[var(--radius-lg)] text-sm leading-relaxed
+                ${msg.role === "user" ? "bg-secondary text-white self-end" : "bg-bg-soft text-ink self-start"}`}>
+                {msg.text}
               </div>
             ))}
-
-            {loading && (
-              <div className="assistant-msg msg-assistant">
-                <span className="assistant-typing">Thinking…</span>
-              </div>
-            )}
-
-            <div ref={messagesEndRef} />
+            {loading && <div className="bg-bg-soft text-ink-faint self-start px-3.5 py-2.5 rounded-[var(--radius-lg)] text-sm italic">Thinking…</div>}
+            <div ref={endRef} />
           </div>
-
-          <form className="assistant-input-row" onSubmit={handleSend}>
-            <input
-              type="text"
-              className="assistant-input"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about the app…"
-              disabled={loading}
-              aria-label="Type your question"
-            />
-            <button className="btn btn-primary assistant-send" type="submit" disabled={loading || !input.trim()}>
-              Send
-            </button>
+          <form className="flex gap-2 px-4 py-3 border-t border-card-border" onSubmit={handleSend}>
+            <input type="text" className="flex-1 px-3.5 py-2.5 text-sm rounded-pill border border-card-border bg-bg-soft focus:outline-none focus:border-primary placeholder:text-ink-faint"
+              value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask about the app…" disabled={loading} />
+            <button type="submit" className="btn-primary !px-4 !py-2 !text-xs" disabled={loading || !input.trim()}>Send</button>
           </form>
         </div>
       )}

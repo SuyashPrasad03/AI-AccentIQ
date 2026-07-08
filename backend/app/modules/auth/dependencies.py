@@ -114,7 +114,11 @@ async def get_current_identity(
             user_id: str = payload.get("sub", "")
             if user_id:
                 user = await get_user_by_id(user_id, db)
-                return Identity(user=user, anon_session_id=None)
+                # Also preserve anon_session_id so consent lookup can find pre-login consent
+                anon_id = None
+                if anon_session_cookie:
+                    anon_id = unsign_anon_session_id(anon_session_cookie)
+                return Identity(user=user, anon_session_id=anon_id)
         except (jwt.InvalidTokenError, Exception):
             # Bad token: fall through to anonymous handling
             pass

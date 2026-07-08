@@ -14,6 +14,7 @@ Each step can raise a clear ValidationError / QuotaExceededError.
 
 import tempfile
 import uuid
+from datetime import UTC, datetime
 from pathlib import Path
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -94,6 +95,7 @@ async def process_upload(
         storage_path=relative_path,
         duration_seconds=duration,
         status="uploaded",
+        created_at=datetime.now(UTC),
     )
     db.add(recording)
     await db.flush()

@@ -41,7 +41,8 @@ class TranscriptDocument(BaseModel):
 class RecordingStatusResponse(BaseModel):
     """Returned by the polling endpoint."""
     recording_id: str
-    status: str  # uploaded | processing | scored | failed
+    status: str  # uploaded | processing | transcribed | scored | failed
+    stage: str | None = None  # transcribing | aligning | scoring | complete | failed
     error_reason: str | None = None
     duration_seconds: float
     created_at: datetime

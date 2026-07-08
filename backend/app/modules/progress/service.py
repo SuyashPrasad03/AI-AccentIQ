@@ -136,7 +136,7 @@ async def get_history(
 
     # Fetch page
     result = await db.execute(
-        select(Score)
+        select(Score, Recording.title)
         .join(Recording, Score.recording_id == Recording.id)
         .where(
             Recording.user_id == user_id,
@@ -146,17 +146,18 @@ async def get_history(
         .limit(limit)
         .offset(offset)
     )
-    scores = result.scalars().all()
+    rows = result.all()
 
     entries = [
         HistoryEntry(
-            recording_id=s.recording_id,
-            overall_score=s.overall_score,
-            fluency_score=s.fluency_score,
-            accuracy_score=s.accuracy_score,
-            created_at=s.created_at,
+            recording_id=score.recording_id,
+            title=title,
+            overall_score=score.overall_score,
+            fluency_score=score.fluency_score,
+            accuracy_score=score.accuracy_score,
+            created_at=score.created_at,
         )
-        for s in scores
+        for score, title in rows
     ]
 
     return HistoryResponse(entries=entries, total=total)

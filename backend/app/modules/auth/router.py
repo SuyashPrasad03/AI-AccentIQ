@@ -42,12 +42,12 @@ def _set_refresh_cookie(response: Response, token: str) -> None:
         secure=settings.app_env != "development",
         samesite="lax",
         max_age=_COOKIE_MAX_AGE,
-        path="/auth",
+        path="/",
     )
 
 
 def _clear_refresh_cookie(response: Response) -> None:
-    response.delete_cookie(key=_REFRESH_COOKIE, path="/auth")
+    response.delete_cookie(key=_REFRESH_COOKIE, path="/")
 
 
 @router.post(

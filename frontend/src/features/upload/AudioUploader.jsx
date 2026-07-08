@@ -2,248 +2,206 @@ import { useState, useRef, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { uploadRecording } from "../../api/recordings.js";
 import { fetchQuota } from "../../store/quotaSlice.js";
+import { Waveform } from "../../components/waveform/Waveform.jsx";
+import { ResultsView } from "../scoring/ResultsView.jsx";
+import { ProcessingStatus } from "../scoring/ProcessingStatus.jsx";
+import { RecordingHistory } from "../progress/RecordingHistory.jsx";
+import { StatsStrip } from "../../components/StatsStrip.jsx";
 
-const MIN_DURATION = 15;
+const MIN_DURATION = 1;
 const MAX_DURATION = 45;
 
-/**
- * AudioUploader — supports both file upload and in-browser mic recording.
- *
- * Features:
- *   - File picker with drag-and-drop
- *   - Live mic recording with duration display + auto-stop at MAX_DURATION
- *   - Client-side duration pre-check (UX nicety — server is authoritative)
- *   - Upload progress indication
- */
 export function AudioUploader() {
   const dispatch = useDispatch();
-
-  const [mode, setMode] = useState("idle"); // idle | recording | uploading | success | error
+  const [mode, setMode] = useState("idle");
   const [duration, setDuration] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
   const [result, setResult] = useState(null);
   const [dragOver, setDragOver] = useState(false);
+  const [history, setHistory] = useState(null);
 
-  // Mic recording refs
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
   const timerRef = useRef(null);
   const startTimeRef = useRef(null);
 
-  // Clean up on unmount
   useEffect(() => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-        mediaRecorderRef.current.stop();
-      }
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") mediaRecorderRef.current.stop();
     };
   }, []);
 
-  // ── File picker / drag-drop ────────────────────────────────────────────────
-
   const handleFileSelect = async (file) => {
-    setErrorMsg("");
-    setResult(null);
-
-    // Client-side duration check (UX only — server re-validates)
+    setErrorMsg(""); setResult(null);
     const fileDuration = await getFileDuration(file);
-    if (fileDuration !== null) {
-      if (fileDuration < MIN_DURATION) {
-        setErrorMsg(`Recording is too short (${fileDuration.toFixed(1)}s). Minimum is ${MIN_DURATION}s.`);
-        return;
-      }
-      if (fileDuration > MAX_DURATION) {
-        setErrorMsg(`Recording is too long (${fileDuration.toFixed(1)}s). Maximum is ${MAX_DURATION}s.`);
-        return;
-      }
+    if (fileDuration !== null && fileDuration > MAX_DURATION) {
+      setErrorMsg(`Too long (${fileDuration.toFixed(1)}s). Maximum is ${MAX_DURATION} seconds.`);
+      return;
     }
-
     await doUpload(file);
   };
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setDragOver(false);
-    const file = e.dataTransfer.files[0];
-    if (file) handleFileSelect(file);
-  };
-
-  const handleInputChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) handleFileSelect(file);
-  };
-
-  // ── Mic recording ─────────────────────────────────────────────────────────
+  const handleDrop = (e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleFileSelect(f); };
+  const handleInputChange = (e) => { const f = e.target.files?.[0]; if (f) handleFileSelect(f); };
 
   const startRecording = async () => {
-    setErrorMsg("");
-    setResult(null);
-    setDuration(0);
-
+    setErrorMsg(""); setResult(null); setDuration(0);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
       mediaRecorderRef.current = recorder;
       chunksRef.current = [];
-
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunksRef.current.push(e.data);
-      };
-
+      recorder.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
       recorder.onstop = async () => {
         stream.getTracks().forEach((t) => t.stop());
         if (timerRef.current) clearInterval(timerRef.current);
-
-        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
-        const elapsed = (Date.now() - startTimeRef.current) / 1000;
-
-        if (elapsed < MIN_DURATION) {
-          setMode("error");
-          setErrorMsg(`Recording too short (${elapsed.toFixed(1)}s). Minimum is ${MIN_DURATION}s.`);
-          return;
-        }
-
+        await new Promise((r) => setTimeout(r, 100));
+        const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
+        if (blob.size < 1000) { setMode("idle"); setErrorMsg("Recording was too short or empty. Try again."); return; }
         await doUpload(blob);
       };
-
-      recorder.start(250); // collect in 250ms chunks
+      recorder.start();
       startTimeRef.current = Date.now();
       setMode("recording");
-
-      // Live timer
       timerRef.current = setInterval(() => {
         const elapsed = (Date.now() - startTimeRef.current) / 1000;
         setDuration(elapsed);
-
-        // Auto-stop at max
-        if (elapsed >= MAX_DURATION) {
-          stopRecording();
-        }
+        if (elapsed >= MAX_DURATION) stopRecording();
       }, 200);
-    } catch (err) {
-      setErrorMsg("Microphone access denied. Please allow mic permissions.");
-      setMode("error");
+    } catch (_e) {
+      setErrorMsg("Microphone access denied. Please allow permissions.");
+      setMode("idle");
     }
   };
 
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-      mediaRecorderRef.current.stop();
-    }
-  };
-
-  // ── Upload ─────────────────────────────────────────────────────────────────
+  const stopRecording = () => { if (mediaRecorderRef.current?.state !== "inactive") mediaRecorderRef.current.stop(); };
 
   const doUpload = async (fileOrBlob) => {
     setMode("uploading");
     try {
       const data = await uploadRecording(fileOrBlob);
-      setResult(data);
-      setMode("success");
-      dispatch(fetchQuota()); // refresh quota bar
+      setResult(data); setMode("processing"); dispatch(fetchQuota());
     } catch (err) {
-      setErrorMsg(err.message || "Upload failed.");
-      setMode("error");
+      let msg = err.message;
+      if (msg.includes("duration") || msg.includes("corrupted")) msg = "We couldn't read that file — try a different format (MP3, WAV, M4A).";
+      else if (msg.includes("quota") || msg.includes("Quota")) msg = "You've used all free analyses. Sign up to continue.";
+      else if (msg.includes("consent")) msg = "Please accept the privacy consent first.";
+      setErrorMsg(msg); setMode("idle");
     }
   };
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Results ─────────────────────────────────────────────
+  if (mode === "results" && result) {
+    return (
+      <div className="animate-slide-up">
+        <ResultsView recordingId={result.recording.id} />
+        <div className="text-center mt-8">
+          <button className="btn-secondary" onClick={() => { setMode("idle"); setResult(null); }}>
+            ← Back to dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
+  // ── Processing ──────────────────────────────────────────
+  if (mode === "processing" && result) {
+    return (
+      <div className="card text-center animate-fade-in py-12">
+        <ProcessingStatus recordingId={result.recording.id} onComplete={() => setMode("results")} onFailed={(msg) => { setErrorMsg(msg || "Processing failed."); setMode("idle"); }} />
+      </div>
+    );
+  }
+
+  // ── Uploading ───────────────────────────────────────────
+  if (mode === "uploading") {
+    return (
+      <div className="card flex flex-col items-center gap-4 py-14 animate-fade-in">
+        <div className="w-10 h-10 border-[3px] border-card-border border-t-primary rounded-full animate-[spin_0.8s_linear_infinite]" />
+        <p className="text-ink-muted text-sm">Uploading and processing…</p>
+      </div>
+    );
+  }
+
+  // ── Recording ───────────────────────────────────────────
+  if (mode === "recording") {
+    return (
+      <div className="card flex flex-col items-center gap-5 py-10 animate-fade-in">
+        <div className="h-20 w-full max-w-xs"><Waveform state="recording" bars={35} /></div>
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-3 bg-danger rounded-full animate-pulse" />
+          <span className="font-mono text-xl font-bold text-danger">{duration.toFixed(1)}s</span>
+          <span className="text-ink-faint text-sm">/ {MAX_DURATION}s</span>
+        </div>
+        <div className="flex gap-3">
+          <button className="btn-secondary" onClick={() => {
+            if (mediaRecorderRef.current?.state !== "inactive") { mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop()); mediaRecorderRef.current = null; }
+            if (timerRef.current) clearInterval(timerRef.current); setMode("idle"); setDuration(0);
+          }}>Cancel</button>
+          <button className="btn-primary" onClick={stopRecording} disabled={duration < MIN_DURATION}>
+            {duration < MIN_DURATION ? "Recording…" : "⏹ Stop & analyze"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Idle — Dashboard ────────────────────────────────────
   return (
-    <div className="uploader-container">
-      <h2 className="uploader-title">Upload or Record</h2>
-      <p className="uploader-subtitle">
-        {MIN_DURATION}–{MAX_DURATION} seconds of spoken English
-      </p>
+    <div className="flex flex-col gap-6">
+      {/* Stats strip */}
+      <StatsStrip history={history} />
 
-      {/* Drop zone / file picker */}
-      {(mode === "idle" || mode === "error" || mode === "success") && (
-        <div
-          className={`drop-zone ${dragOver ? "drop-zone-active" : ""}`}
-          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-          onDragLeave={() => setDragOver(false)}
-          onDrop={handleDrop}
-          role="button"
-          tabIndex={0}
-          aria-label="Drop audio file here or click to select"
-        >
-          <p className="drop-zone-text">
-            📁 Drag & drop an audio file here, or{" "}
-            <label className="file-label">
-              browse
-              <input type="file" accept="audio/*" onChange={handleInputChange} hidden />
-            </label>
+      {/* Upload card — elevated, tinted */}
+      <div
+        className={`relative overflow-hidden rounded-[var(--radius-card)] border-2 border-dashed transition-all cursor-pointer
+          ${dragOver ? "border-primary bg-primary-soft shadow-lg" : "border-primary/30 bg-bg-soft hover:border-primary/60 hover:shadow-card"}`}
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={handleDrop}
+        onClick={() => document.getElementById("file-input").click()}
+        role="button" tabIndex={0}
+        onKeyDown={(e) => { if (e.key === "Enter") document.getElementById("file-input").click(); }}
+      >
+        <div className="relative z-10 flex flex-col items-center py-12 gap-3">
+          <div className="w-14 h-14 rounded-full bg-primary-soft flex items-center justify-center mb-1">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-primary">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+          </div>
+          <p className="text-ink font-medium text-sm">
+            Drop an audio file here, or <span className="text-primary font-semibold">browse</span>
           </p>
+          <p className="text-ink-faint text-xs">MP3, WAV, M4A, WebM · up to 45 seconds</p>
         </div>
-      )}
+        <input id="file-input" type="file" accept="audio/*" onChange={handleInputChange} className="hidden" />
+      </div>
 
-      {/* Mic recording UI */}
-      {mode === "idle" && (
-        <button className="btn btn-primary btn-large" onClick={startRecording}>
-          🎤 Record with microphone
-        </button>
-      )}
+      {/* Record button */}
+      <button className="btn-primary w-full py-4 text-base" onClick={startRecording}>
+        🎤 Record with microphone
+      </button>
 
-      {mode === "recording" && (
-        <div className="recording-live">
-          <div className="recording-indicator" aria-label="Recording in progress">
-            <span className="recording-dot" />
-            <span>Recording… {duration.toFixed(1)}s / {MAX_DURATION}s</span>
-          </div>
-          <div className="recording-bar-track">
-            <div
-              className="recording-bar-fill"
-              style={{ width: `${Math.min((duration / MAX_DURATION) * 100, 100)}%` }}
-            />
-          </div>
-          <button className="btn btn-primary" onClick={stopRecording} disabled={duration < MIN_DURATION}>
-            ⏹ Stop {duration < MIN_DURATION ? `(min ${MIN_DURATION}s)` : "and upload"}
-          </button>
-        </div>
-      )}
-
-      {mode === "uploading" && (
-        <div className="upload-progress">
-          <span className="boot-spinner" />
-          <p>Uploading and processing…</p>
-        </div>
-      )}
-
-      {/* Results / errors */}
+      {/* Error */}
       {errorMsg && (
-        <div className="form-error" role="alert">{errorMsg}</div>
-      )}
-
-      {mode === "success" && result && (
-        <div className="upload-success" role="status">
-          <p>✅ Upload successful</p>
-          <p className="upload-detail">
-            Duration: {result.recording.duration_seconds.toFixed(1)}s — Status: {result.recording.status}
-          </p>
-          <button className="btn btn-ghost" onClick={() => { setMode("idle"); setResult(null); }}>
-            Upload another
-          </button>
+        <div className="bg-danger-soft border border-danger/20 rounded-[var(--radius-lg)] px-5 py-3.5 animate-slide-up">
+          <p className="text-sm text-danger font-medium">{errorMsg}</p>
         </div>
       )}
+
+      {/* Recording history */}
+      <RecordingHistory onSelect={(id) => { setResult({ recording: { id } }); setMode("results"); }} onHistoryLoad={setHistory} />
     </div>
   );
 }
-
-// ── Utility: read duration from file via HTMLAudioElement ─────────────────────
 
 function getFileDuration(file) {
   return new Promise((resolve) => {
     const url = URL.createObjectURL(file);
     const audio = new Audio();
-    audio.addEventListener("loadedmetadata", () => {
-      URL.revokeObjectURL(url);
-      resolve(isFinite(audio.duration) ? audio.duration : null);
-    });
-    audio.addEventListener("error", () => {
-      URL.revokeObjectURL(url);
-      resolve(null); // can't determine — let server decide
-    });
+    audio.addEventListener("loadedmetadata", () => { URL.revokeObjectURL(url); resolve(isFinite(audio.duration) ? audio.duration : null); });
+    audio.addEventListener("error", () => { URL.revokeObjectURL(url); resolve(null); });
     audio.src = url;
   });
 }

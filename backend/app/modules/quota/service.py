@@ -10,7 +10,6 @@ without full device fingerprinting (which DPDP deliberately avoids).
 """
 
 from sqlalchemy import select
-from sqlalchemy.dialects.mysql import insert as mysql_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import QuotaExceededError
@@ -144,26 +143,24 @@ async def _get_or_create_usage(
 ) -> AnonymousUsage:
     """
     Fetch or create an AnonymousUsage row for this session.
-    Uses INSERT … ON DUPLICATE KEY UPDATE to handle concurrent first-requests safely.
+    Uses a simple SELECT-then-INSERT pattern for MySQL compatibility.
     """
-    stmt = (
-        mysql_insert(AnonymousUsage)
-        .values(
-            anon_session_id=anon_session_id,
-            ip_hash=ip_hash,
-            analyses_used=0,
-        )
-        .on_duplicate_key_update(
-            ip_hash=mysql_insert(AnonymousUsage).inserted.ip_hash,
-        )
-    )
-    await db.execute(stmt)
-    await db.flush()
-
+    # Try to find existing
     result = await db.execute(
         select(AnonymousUsage).where(
             AnonymousUsage.anon_session_id == anon_session_id
         )
     )
-    usage = result.scalar_one()
+    usage = result.scalar_one_or_none()
+
+    if usage is None:
+        # Create new row
+        usage = AnonymousUsage(
+            anon_session_id=anon_session_id,
+            ip_hash=ip_hash,
+            analyses_used=0,
+        )
+        db.add(usage)
+        await db.flush()
+
     return usage
