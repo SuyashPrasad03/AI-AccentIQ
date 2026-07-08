@@ -66,7 +66,7 @@ export function HomePage() {
       <footer className="border-t border-card-border py-4 px-6">
         <div className="w-full flex items-center justify-between">
           <StatusFooterDot />
-          <span className="text-[11px] text-ink-faint">Pronunciation Coach</span>
+          <span className="text-[11px] text-ink-faint">AccentIQ</span>
         </div>
       </footer>
 

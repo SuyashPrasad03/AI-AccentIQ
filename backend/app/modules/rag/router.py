@@ -19,7 +19,7 @@ router = APIRouter(prefix="/assistant", tags=["assistant"])
 )
 async def ask(body: AskRequest) -> AskResponse:
     """
-    Answers ONLY questions about the Pronunciation Coach app itself.
+    Answers ONLY questions about the AccentIQ app itself.
     Grounded in the knowledge base. Refuses out-of-scope questions.
     """
     return await service.ask_assistant(body.question)

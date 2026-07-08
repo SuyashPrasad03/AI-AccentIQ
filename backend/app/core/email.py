@@ -87,7 +87,7 @@ def get_email_sender() -> EmailSender:
 async def send_otp_email(to: str, otp: str, purpose: str = "registration") -> None:
     """Convenience function for sending an OTP email."""
     sender = get_email_sender()
-    subject = "Your Pronunciation Coach verification code"
+    subject = "Your AccentIQ verification code"
     text_body = (
         f"Your {purpose} code is: {otp}\n\n"
         f"This code expires in {settings.otp_expiry_minutes} minutes.\n"
@@ -95,7 +95,7 @@ async def send_otp_email(to: str, otp: str, purpose: str = "registration") -> No
     )
     html_body = f"""
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
-      <h2 style="color:#1e293b">Pronunciation Coach</h2>
+      <h2 style="color:#1e293b">AccentIQ</h2>
       <p>Your verification code:</p>
       <div style="font-size:2.5rem;font-weight:700;letter-spacing:0.25em;
                   color:#4f46e5;padding:16px;background:#f1f5f9;

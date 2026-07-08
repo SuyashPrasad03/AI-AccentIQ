@@ -17,7 +17,7 @@ jobs:
         image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: rootpassword
-          MYSQL_DATABASE: pronunciation_coach_test
+          MYSQL_DATABASE: accentiq_test
           MYSQL_USER: pronunciation
           MYSQL_PASSWORD: testpassword
         ports:
@@ -49,9 +49,9 @@ jobs:
       MYSQL_PORT: 3306
       MYSQL_USER: pronunciation
       MYSQL_PASSWORD: testpassword
-      MYSQL_DATABASE: pronunciation_coach_test
+      MYSQL_DATABASE: accentiq_test
       MONGO_URI: mongodb://127.0.0.1:27017
-      MONGO_DATABASE: pronunciation_coach_test
+      MONGO_DATABASE: accentiq_test
       STORAGE_BACKEND: local
       STORAGE_LOCAL_ROOT: /tmp/pronunciation_test_storage
       EMAIL_CONSOLE_FALLBACK: "true"

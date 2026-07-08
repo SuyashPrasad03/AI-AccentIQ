@@ -1,7 +1,7 @@
 # Frequently Asked Questions
 
-## What is Pronunciation Coach?
-Pronunciation Coach is an AI-powered tool that analyzes your spoken English and provides personalized feedback to help you improve your pronunciation. It uses advanced speech recognition technology to identify specific sounds you might be struggling with.
+## What is AccentIQ?
+AccentIQ is an AI-powered tool that analyzes your spoken English and provides personalized feedback to help you improve your pronunciation. It uses advanced speech recognition technology to identify specific sounds you might be struggling with.
 
 ## How do I use it?
 1. Upload an audio recording of yourself speaking English (15-45 seconds).

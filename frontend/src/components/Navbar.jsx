@@ -26,7 +26,7 @@ export function Navbar() {
               <span className="text-white text-xs font-bold">P</span>
             </div>
             <span className="font-display font-bold text-ink text-sm tracking-tight hidden sm:inline">
-              Pronunciation Coach
+              AccentIQ
             </span>
           </button>
 

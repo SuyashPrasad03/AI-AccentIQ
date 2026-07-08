@@ -180,7 +180,7 @@ export function LandingPage() {
             </div>
           </div>
           <div className="border-t border-border pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-ink-faint">
-            <span>© 2026 Pronunciation Coach · v0.10 · Privacy-first AI</span>
+            <span>© 2026 AccentIQ · v0.10 · Privacy-first AI</span>
             <span>Made with care for language learners</span>
           </div>
         </div>

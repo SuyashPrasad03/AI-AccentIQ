@@ -1,4 +1,4 @@
-# AI Pronunciation Coach
+# AI AccentIQ
 
 An AI-powered pronunciation coaching platform that analyses spoken English, scores phoneme-level accuracy, and generates personalised practice exercises.
 
@@ -31,7 +31,7 @@ An AI-powered pronunciation coaching platform that analyses spoken English, scor
 
 ```bash
 git clone <repo-url>
-cd pronunciation-coach
+cd accentiq
 
 # Copy the example env file and fill in any values you want to override.
 # The defaults work for local dev without any changes.
@@ -96,7 +96,7 @@ docker compose down -v
 ## Project Structure
 
 ```
-pronunciation-coach/
+accentiq/
 ├── .github/workflows/    CI pipeline (lint + test on every push)
 ├── docs/                 Architecture document (Phase 12)
 ├── frontend/             React + Vite

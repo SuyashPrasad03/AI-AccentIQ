@@ -1,6 +1,6 @@
 {
-  "name": "AI Pronunciation Coach",
-  "short_name": "PronounceAI",
+  "name": "AI AccentIQ",
+  "short_name": "AccentIQ",
   "description": "AI-powered English pronunciation analysis with phoneme-level scoring",
   "start_url": "/",
   "display": "standalone",

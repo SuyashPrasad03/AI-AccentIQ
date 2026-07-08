@@ -92,7 +92,7 @@ export function DashboardPage() {
           </div>
           <div className="border-t border-border pt-4 flex flex-col sm:flex-row items-center justify-between gap-2">
             <StatusFooterDot />
-            <span className="text-[11px] text-ink-faint">© 2026 Pronunciation Coach · v0.10</span>
+            <span className="text-[11px] text-ink-faint">© 2026 AccentIQ · v0.10</span>
           </div>
         </div>
       </footer>

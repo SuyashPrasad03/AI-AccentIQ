@@ -1,4 +1,4 @@
-# Architecture Document — AI Pronunciation Coach
+# Architecture Document — AI AccentIQ
 
 ## Components & Connections
 

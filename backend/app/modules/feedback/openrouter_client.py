@@ -35,8 +35,8 @@ async def call_openrouter(
     headers = {
         "Authorization": f"Bearer {settings.openrouter_api_key}",
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://pronunciation-coach.example.com",
-        "X-Title": "Pronunciation Coach",
+        "HTTP-Referer": "https://accentiq.example.com",
+        "X-Title": "AccentIQ",
     }
 
     payload = {
@@ -100,8 +100,8 @@ async def call_openrouter_text(
     headers = {
         "Authorization": f"Bearer {settings.openrouter_api_key}",
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://pronunciation-coach.example.com",
-        "X-Title": "Pronunciation Coach",
+        "HTTP-Referer": "https://accentiq.example.com",
+        "X-Title": "AccentIQ",
     }
 
     payload = {

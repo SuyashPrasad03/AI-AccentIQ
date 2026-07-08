@@ -8,7 +8,7 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-pronunciation_coach}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-accentiq}
       MYSQL_USER: ${MYSQL_USER:-pronunciation}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-changeme_mysql_password}
     ports:
@@ -31,7 +31,7 @@ services:
     container_name: pronunciation_mongo
     restart: unless-stopped
     environment:
-      MONGO_INITDB_DATABASE: ${MONGO_DATABASE:-pronunciation_coach}
+      MONGO_INITDB_DATABASE: ${MONGO_DATABASE:-accentiq}
     ports:
       - "27017:27017"
     volumes:

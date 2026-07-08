@@ -1,5 +1,5 @@
 """
-Application factory for the AI Pronunciation Coach backend.
+Application factory for the AI AccentIQ backend.
 
 Usage:
     uvicorn app.main:app --reload
@@ -61,7 +61,7 @@ def create_app() -> FastAPI:
     tests to instantiate isolated copies with different settings.
     """
     app = FastAPI(
-        title="AI Pronunciation Coach",
+        title="AI AccentIQ",
         description="Backend API for the AI-powered pronunciation coaching platform.",
         version="0.2.0",
         docs_url="/docs" if settings.app_env != "production" else None,

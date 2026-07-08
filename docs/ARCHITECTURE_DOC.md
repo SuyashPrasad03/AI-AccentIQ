@@ -1,4 +1,4 @@
-# System Architecture — AI Pronunciation Coach
+# System Architecture — AI AccentIQ
 
 ## How Everything Connects
 

@@ -48,7 +48,7 @@ class Settings(BaseSettings):
     mysql_port: int = 3306
     mysql_user: str = "pronunciation"
     mysql_password: str = "changeme_mysql_password"
-    mysql_database: str = "pronunciation_coach"
+    mysql_database: str = "accentiq"
 
     @property
     def mysql_dsn(self) -> str:
@@ -61,7 +61,7 @@ class Settings(BaseSettings):
 
     # ── MongoDB ───────────────────────────────────────────────
     mongo_uri: str = "mongodb://mongo:27017"
-    mongo_database: str = "pronunciation_coach"
+    mongo_database: str = "accentiq"
 
     # ── Storage ───────────────────────────────────────────────
     storage_backend: Literal["local", "s3"] = "local"
@@ -95,8 +95,8 @@ class Settings(BaseSettings):
     smtp_port: int = 465
     smtp_user: str = "resend"
     smtp_password: str = ""
-    smtp_from_address: str = "noreply@pronunciation-coach.example.com"
-    smtp_from_name: str = "Pronunciation Coach"
+    smtp_from_address: str = "noreply@accentiq.example.com"
+    smtp_from_name: str = "AccentIQ"
     email_console_fallback: bool = True
     otp_rate_limit_per_hour: int = 5
     otp_expiry_minutes: int = 10

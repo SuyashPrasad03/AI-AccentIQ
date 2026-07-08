@@ -1,4 +1,4 @@
-# AI Pronunciation Coach — Complete Project Guide
+# AI AccentIQ — Complete Project Guide
 
 > This document explains **every functionality** of the application: what it does, how it works internally, and why each design decision was made.
 
@@ -558,7 +558,7 @@ India's Digital Personal Data Protection Act 2023. Requires:
 ```bash
 # Clone
 git clone <repo>
-cd pronunciation-coach
+cd accentiq
 
 # Backend
 cd backend
@@ -567,7 +567,7 @@ pip install -r requirements.txt
 pip install deepgram torch torchaudio phonemizer sentence-transformers
 
 # Create DB
-mysql -u root -p -e "CREATE DATABASE pronunciation_coach CHARACTER SET utf8mb4;"
+mysql -u root -p -e "CREATE DATABASE accentiq CHARACTER SET utf8mb4;"
 
 # Run migrations
 alembic upgrade head
