@@ -110,7 +110,7 @@ async def call_openrouter_text(
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
         ],
-        "temperature": 0.3,
+        "temperature": 0.5,
         "max_tokens": 500,
     }
 

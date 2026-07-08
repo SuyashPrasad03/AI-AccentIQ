@@ -13,6 +13,7 @@ Flow:
 from app.core.logging import get_logger
 from app.core.settings import settings
 from app.modules.feedback.openrouter_client import call_openrouter_text
+from app.modules.rag.embedder import _USE_TRANSFORMERS
 from app.modules.rag.prompt_templates import REFUSAL_MESSAGE, build_rag_prompt
 from app.modules.rag.schemas import AskResponse
 from app.modules.rag.vector_index import search_similar
@@ -24,33 +25,30 @@ async def ask_assistant(question: str) -> AskResponse:
     """
     Answer a question grounded in the KB, or refuse if out-of-scope.
     """
-    # 1. Retrieve top-k chunks
-    results = await search_similar(question)
+    # For BoW mode with a small KB, retrieve more chunks to increase hit probability
+    top_k_override = 15 if not _USE_TRANSFORMERS else None
+    results = await search_similar(question, top_k=top_k_override)
 
     if not results:
         return AskResponse(answer=REFUSAL_MESSAGE, sources=[], refused=True)
 
-    # 2. Check similarity threshold (hard backstop for refusal)
+    # 2. Threshold check — with BoW we use a very low threshold and trust LLM grounding
     best_score = results[0]["score"]
+    threshold = settings.rag_similarity_threshold if _USE_TRANSFORMERS else 0.0
 
-    # BoW fallback produces much lower similarity scores than real embeddings.
-    # Use a very permissive threshold for BoW — rely on LLM's grounding instruction
-    # for the actual refusal logic instead.
-    from app.modules.rag.embedder import _USE_TRANSFORMERS
-    threshold = settings.rag_similarity_threshold if _USE_TRANSFORMERS else 0.01
-
-    if best_score < threshold:
-        logger.info(
-            "rag_refusal_threshold",
-            question=question[:80],
-            best_score=best_score,
-            threshold=threshold,
-        )
+    # For BoW: always pass top-k context to LLM, let it decide relevance
+    if _USE_TRANSFORMERS and best_score < threshold:
+        logger.info("rag_refusal_threshold", question=question[:80], best_score=best_score)
         return AskResponse(answer=REFUSAL_MESSAGE, sources=[], refused=True)
 
-    # 3. Build context from relevant chunks
-    context_chunks = [r["text"] for r in results if r["score"] >= threshold * 0.7]
-    sources = list(set(r["source_doc"] for r in results if r["score"] >= threshold * 0.7))
+    # 3. Build context from top results (all of them for BoW, threshold-filtered for real embeddings)
+    if _USE_TRANSFORMERS:
+        context_chunks = [r["text"] for r in results if r["score"] >= threshold * 0.7]
+        sources = list(set(r["source_doc"] for r in results if r["score"] >= threshold * 0.7))
+    else:
+        # BoW: just use all top-k results, let LLM filter
+        context_chunks = [r["text"] for r in results]
+        sources = list(set(r["source_doc"] for r in results))
 
     # 4. Call LLM with grounded prompt (plain text mode, not JSON)
     system_prompt = build_rag_prompt(context_chunks)
