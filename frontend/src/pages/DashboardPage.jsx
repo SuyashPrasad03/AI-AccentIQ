@@ -8,6 +8,7 @@ import { getConsentStatus } from "../api/quota.js";
 import { RegisterModal } from "../features/auth/RegisterModal.jsx";
 import { AudioUploader } from "../features/upload/AudioUploader.jsx";
 import { StatusFooterDot } from "../features/system-status/StatusFooterDot.jsx";
+import { PageLoader } from "../components/PageLoader.jsx";
 
 export function DashboardPage() {
   const dispatch = useDispatch();
@@ -38,6 +39,7 @@ export function DashboardPage() {
   }, [requiresAuth, isAuth]);
 
   return (
+    <PageLoader>
     <div className="flex-1 flex flex-col">
       <main className="flex-1 w-full max-w-5xl mx-auto px-6 py-8 flex flex-col gap-8">
         {/* Page header */}
@@ -59,5 +61,6 @@ export function DashboardPage() {
 
       {showRegister && <RegisterModal onClose={() => setShowRegister(false)} onSwitchToLogin={() => setShowRegister(false)} />}
     </div>
+    </PageLoader>
   );
 }

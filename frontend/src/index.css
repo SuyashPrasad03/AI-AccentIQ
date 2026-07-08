@@ -130,3 +130,9 @@ body { background: var(--color-bg); color: var(--color-ink); font-family: var(--
 .pill-warning { background: var(--color-warning-soft); color: var(--color-warning); }
 .pill-danger { background: var(--color-danger-soft); color: var(--color-danger); }
 .pill-muted { background: var(--color-bg-soft); color: var(--color-ink-muted); border: 1px solid var(--color-border); }
+
+@keyframes loading {
+  0% { width: 0%; }
+  50% { width: 70%; }
+  100% { width: 100%; }
+}

@@ -1,12 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectIsAuthenticated } from "../store/authSlice.js";
+import { PageLoader } from "../components/PageLoader.jsx";
 
 export function LandingPage() {
   const navigate = useNavigate();
   const isAuth = useSelector(selectIsAuthenticated);
 
   return (
+    <PageLoader>
     <div className="flex-1">
       {/* ── Hero ───────────────────────────────────────────── */}
       <section className="relative overflow-hidden">
@@ -184,5 +186,6 @@ export function LandingPage() {
         </div>
       </footer>
     </div>
+    </PageLoader>
   );
 }
