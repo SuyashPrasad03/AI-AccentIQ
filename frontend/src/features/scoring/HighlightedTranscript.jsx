@@ -7,7 +7,7 @@ export function HighlightedTranscript({ wordScores, onWordClick }) {
 
   const getStyle = (issue) => {
     switch (issue) {
-      case "correct": return "bg-green-100 text-green-800 border-green-300 hover:bg-green-200";
+      case "correct": return "bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200";
       case "mispronounced": return "bg-red-100 text-red-800 border-red-300 hover:bg-red-200";
       case "unclear": return "bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200";
       case "mistimed": return "bg-orange-100 text-orange-800 border-orange-300 hover:bg-orange-200";
@@ -62,7 +62,7 @@ export function HighlightedTranscript({ wordScores, onWordClick }) {
 
       {/* Legend */}
       <div className="flex flex-wrap gap-4 pt-3 border-t border-border-soft">
-        <Legend color="bg-green-500" label="Correct" />
+        <Legend color="bg-blue-600" label="Correct" />
         <Legend color="bg-red-500" label="Mispronounced" />
         <Legend color="bg-amber-500" label="Unclear" />
         <Legend color="bg-orange-500" label="Mistimed" />

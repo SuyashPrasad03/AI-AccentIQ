@@ -80,7 +80,7 @@ export function MistakePie({ wordScores }) {
   wordScores.forEach((w) => { counts[w.detected_issue] = (counts[w.detected_issue] || 0) + 1; });
 
   const data = [
-    { name: "Correct", value: counts.correct, color: "#16A34A" },
+    { name: "Correct", value: counts.correct, color: "#2563EB" },
     { name: "Mispronounced", value: counts.mispronounced, color: "#DC2626" },
     { name: "Unclear", value: counts.unclear, color: "#D97706" },
     { name: "Mistimed", value: counts.mistimed, color: "#EA580C" },

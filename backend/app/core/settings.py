@@ -87,6 +87,9 @@ class Settings(BaseSettings):
     openrouter_model: str = "google/gemini-flash-1.5"
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
 
+    # ── Deepgram (cloud ASR — zero RAM alternative to WhisperX) ──
+    deepgram_api_key: str = ""
+
     # ── Email / OTP ───────────────────────────────────────────
     smtp_host: str = "smtp.resend.com"
     smtp_port: int = 465

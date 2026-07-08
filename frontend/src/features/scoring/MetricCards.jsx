@@ -35,7 +35,7 @@ export function MetricCards({ score }) {
 }
 
 function ProgressBar({ value }) {
-  const color = value >= 80 ? "bg-success" : value >= 60 ? "bg-warning" : "bg-danger";
+  const color = value >= 80 ? "bg-[#2563EB]" : value >= 60 ? "bg-amber-500" : "bg-red-500";
   return (
     <div className="w-full h-1.5 bg-border-soft rounded-full mt-2 overflow-hidden">
       <div className={`h-full rounded-full transition-all duration-1000 ${color}`} style={{ width: `${Math.min(value, 100)}%` }} />
@@ -44,7 +44,7 @@ function ProgressBar({ value }) {
 }
 
 function getScoreColor(v) {
-  if (v >= 80) return "text-success";
-  if (v >= 60) return "text-warning";
-  return "text-danger";
+  if (v >= 80) return "text-[#2563EB]";
+  if (v >= 60) return "text-amber-600";
+  return "text-red-600";
 }

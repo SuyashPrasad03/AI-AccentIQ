@@ -18,7 +18,7 @@ export function ScoreCard({ overall, accuracy, fluency }) {
     requestAnimationFrame(animate);
   }, [overall]);
 
-  const getColor = (s) => s >= 80 ? "#10B981" : s >= 60 ? "#F59E0B" : "#EF4444";
+  const getColor = (s) => s >= 80 ? "#2563EB" : s >= 60 ? "#D97706" : "#DC2626";
   const getLabel = (s) => s >= 90 ? "Excellent" : s >= 80 ? "Great" : s >= 70 ? "Good" : s >= 60 ? "Fair" : "Needs Work";
   const color = getColor(overall);
 
@@ -52,7 +52,7 @@ export function ScoreCard({ overall, accuracy, fluency }) {
 }
 
 function SubScore({ label, value }) {
-  const color = value >= 80 ? "text-success" : value >= 60 ? "text-warning" : "text-danger";
+  const color = value >= 80 ? "text-[#2563EB]" : value >= 60 ? "text-amber-600" : "text-red-600";
   return (
     <div className="flex flex-col items-center">
       <span className={`text-2xl font-bold ${color}`}>{Math.round(value)}</span>

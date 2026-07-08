@@ -1,15 +1,12 @@
 """
-WhisperX client wrapper.
+Speech-to-text client — tries multiple backends in order:
 
-Encapsulates model loading and inference. In production this would run on a
-GPU worker; for the assessment it runs in-process on CPU.
+1. Deepgram API (cloud, zero RAM, free tier 12K min/year) — preferred for deployment
+2. WhisperX (local, needs GPU/RAM) — for local dev with full ML
+3. Mock fallback (fake data) — for CI/testing
 
-If WhisperX is not installed (heavy dependency), falls back to a mock
-transcription that returns reasonable placeholder data — allowing the full
-pipeline to run end-to-end in lightweight dev/CI environments.
-
-Trade-off documented: CPU inference on Render free tier takes ~15-30s for a
-30s clip with the "small" model. GPU-backed inference is the production path.
+Set DEEPGRAM_API_KEY in .env to use Deepgram.
+Otherwise falls back to WhisperX if installed, then mock.
 """
 
 import uuid
@@ -23,18 +20,33 @@ logger = get_logger(__name__)
 
 def transcribe_and_align(audio_path: str | Path) -> dict:
     """
-    Run WhisperX transcription + forced alignment on a normalized WAV file.
+    Run speech-to-text on a normalized WAV file.
+    
+    Priority:
+      1. Deepgram API (if DEEPGRAM_API_KEY is set)
+      2. WhisperX local (if installed)
+      3. Mock fallback (dev/CI)
 
     Returns a dict with:
         raw_text: str — full transcript text
         words: list[dict] — [{word, start, end, confidence}, ...]
         language: str
         model_version: str
-
-    Falls back to mock output if whisperx is not installed.
     """
     audio_path = str(audio_path)
 
+    # 1. Try Deepgram first (zero RAM, works on free Render)
+    deepgram_key = getattr(settings, "deepgram_api_key", "") or ""
+    if deepgram_key:
+        try:
+            result = _deepgram_sync(audio_path, deepgram_key)
+            if result:
+                return result
+            logger.warning("deepgram_returned_none", fallback="whisperx_or_mock")
+        except Exception as exc:
+            logger.warning("deepgram_failed", error=str(exc), fallback="whisperx_or_mock")
+
+    # 2. Try WhisperX local
     try:
         import whisperx
         import torch
@@ -106,6 +118,57 @@ def transcribe_and_align(audio_path: str | Path) -> dict:
             info="Install whisperx + torch for real ASR. Using mock for dev/CI.",
         )
         return _mock_transcription(audio_path)
+
+
+def _deepgram_sync(audio_path: str, api_key: str) -> dict | None:
+    """Synchronous Deepgram API call — works in any context (sync bg tasks)."""
+    import httpx
+
+    try:
+        with open(audio_path, "rb") as f:
+            audio_data = f.read()
+
+        response = httpx.post(
+            "https://api.deepgram.com/v1/listen",
+            headers={
+                "Authorization": f"Token {api_key}",
+                "Content-Type": "audio/wav",
+            },
+            params={"model": "nova-2", "language": "en", "punctuate": "true"},
+            content=audio_data,
+            timeout=60.0,
+        )
+
+        if response.status_code != 200:
+            logger.error("deepgram_sync_error", status=response.status_code)
+            return None
+
+        data = response.json()
+        channels = data.get("results", {}).get("channels", [])
+        if not channels:
+            return None
+        best = channels[0].get("alternatives", [{}])[0]
+
+        words = [
+            {
+                "word": w.get("word", ""),
+                "start": round(w.get("start", 0.0), 3),
+                "end": round(w.get("end", 0.0), 3),
+                "confidence": round(w.get("confidence", 0.0), 3),
+            }
+            for w in best.get("words", [])
+        ]
+
+        logger.info("deepgram_sync_done", word_count=len(words))
+        return {
+            "raw_text": best.get("transcript", ""),
+            "words": words,
+            "language": "en",
+            "model_version": "deepgram-nova-2",
+        }
+    except Exception as exc:
+        logger.error("deepgram_sync_failed", error=str(exc))
+        return None
 
 
 def _mock_transcription(audio_path: str) -> dict:

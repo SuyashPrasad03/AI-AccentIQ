@@ -14,7 +14,7 @@ export function ScoreBadge({ score }) {
 }
 
 function getScoreStyle(score) {
-  if (score >= 80) return { bg: "bg-success-soft", text: "text-success" };
-  if (score >= 60) return { bg: "bg-warning-soft", text: "text-warning" };
-  return { bg: "bg-danger-soft", text: "text-danger" };
+  if (score >= 80) return { bg: "bg-[#2563EB]/10", text: "text-[#2563EB]" };
+  if (score >= 60) return { bg: "bg-amber-100", text: "text-amber-700" };
+  return { bg: "bg-red-100", text: "text-red-700" };
 }
