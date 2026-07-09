@@ -70,6 +70,7 @@ class UserOut(BaseModel):
 
 class TokenResponse(BaseModel):
     access_token: str
+    refresh_token: str | None = None  # Included for cross-domain clients that can't use cookies
     token_type: str = "bearer"
     expires_in: int  # seconds
     user: UserOut

@@ -1,5 +1,21 @@
 import { apiFetch } from "./client.js";
 
+const REFRESH_TOKEN_KEY = "accentiq_refresh_token";
+
+export function storeRefreshToken(token) {
+  if (token) {
+    localStorage.setItem(REFRESH_TOKEN_KEY, token);
+  }
+}
+
+export function getStoredRefreshToken() {
+  return localStorage.getItem(REFRESH_TOKEN_KEY);
+}
+
+export function clearStoredRefreshToken() {
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+}
+
 export async function registerEmail(email) {
   return apiFetch("/auth/register", {
     method: "POST",
@@ -8,25 +24,40 @@ export async function registerEmail(email) {
 }
 
 export async function verifyOtp(email, otp, password) {
-  return apiFetch("/auth/verify-otp", {
+  const data = await apiFetch("/auth/verify-otp", {
     method: "POST",
     body: JSON.stringify({ email, otp, password }),
   });
+  if (data.refresh_token) storeRefreshToken(data.refresh_token);
+  return data;
 }
 
 export async function loginUser(email, password) {
-  return apiFetch("/auth/login", {
+  const data = await apiFetch("/auth/login", {
     method: "POST",
     body: JSON.stringify({ email, password }),
   });
+  if (data.refresh_token) storeRefreshToken(data.refresh_token);
+  return data;
 }
 
 export async function refreshToken() {
-  return apiFetch("/auth/refresh", { method: "POST" });
+  const stored = getStoredRefreshToken();
+  const data = await apiFetch("/auth/refresh", {
+    method: "POST",
+    body: JSON.stringify({ refresh_token: stored || "" }),
+  });
+  if (data.refresh_token) storeRefreshToken(data.refresh_token);
+  return data;
 }
 
 export async function logoutUser() {
-  return apiFetch("/auth/logout", { method: "POST" });
+  const stored = getStoredRefreshToken();
+  clearStoredRefreshToken();
+  return apiFetch("/auth/logout", {
+    method: "POST",
+    body: JSON.stringify({ refresh_token: stored || "" }),
+  });
 }
 
 export async function getMe() {

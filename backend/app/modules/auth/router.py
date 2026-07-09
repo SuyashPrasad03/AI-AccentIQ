@@ -87,6 +87,7 @@ async def verify_otp(
     _set_refresh_cookie(response, refresh_plain)
     return TokenResponse(
         access_token=access_token,
+        refresh_token=refresh_plain,
         expires_in=settings.jwt_access_token_expire_minutes * 60,
         user=UserOut.model_validate(user),
     )
@@ -110,6 +111,7 @@ async def login(
     _set_refresh_cookie(response, refresh_plain)
     return TokenResponse(
         access_token=access_token,
+        refresh_token=refresh_plain,
         expires_in=settings.jwt_access_token_expire_minutes * 60,
         user=UserOut.model_validate(user),
     )
@@ -121,20 +123,31 @@ async def login(
     summary="Rotate refresh token → new access token",
 )
 async def refresh(
+    request: Request,
     response: Response,
     refresh_token: str | None = Cookie(default=None, alias=_REFRESH_COOKIE),
     db: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
-    if not refresh_token:
+    # Try cookie first, then request body (for cross-domain clients)
+    token = refresh_token
+    if not token:
+        try:
+            body = await request.json()
+            token = body.get("refresh_token")
+        except Exception:
+            pass
+
+    if not token:
         raise AuthenticationError(message="No refresh token provided.")
 
     user, new_access, new_refresh = await service.refresh_access_token(
-        refresh_token_plain=refresh_token,
+        refresh_token_plain=token,
         db=db,
     )
     _set_refresh_cookie(response, new_refresh)
     return TokenResponse(
         access_token=new_access,
+        refresh_token=new_refresh,
         expires_in=settings.jwt_access_token_expire_minutes * 60,
         user=UserOut.model_validate(user),
     )
@@ -146,12 +159,22 @@ async def refresh(
     summary="Revoke refresh token and clear cookie",
 )
 async def logout(
+    request: Request,
     response: Response,
     refresh_token: str | None = Cookie(default=None, alias=_REFRESH_COOKIE),
     db: AsyncSession = Depends(get_db),
 ) -> LogoutResponse:
-    if refresh_token:
-        await service.logout_user(refresh_token_plain=refresh_token, db=db)
+    # Try cookie first, then request body
+    token = refresh_token
+    if not token:
+        try:
+            body = await request.json()
+            token = body.get("refresh_token")
+        except Exception:
+            pass
+
+    if token:
+        await service.logout_user(refresh_token_plain=token, db=db)
     _clear_refresh_cookie(response)
     return LogoutResponse(message="Logged out successfully.")
 

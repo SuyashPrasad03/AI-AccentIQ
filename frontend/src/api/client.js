@@ -25,12 +25,17 @@ const AUTH_PATHS = ["/auth/login", "/auth/register", "/auth/verify-otp", "/auth/
 
 async function tryRefresh() {
   try {
+    const { getStoredRefreshToken, storeRefreshToken } = await import("./auth.js");
+    const stored = getStoredRefreshToken();
     const res = await fetch(`${API_BASE}/auth/refresh`, {
       method: "POST",
       credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: stored || "" }),
     });
     if (!res.ok) return null;
     const data = await res.json();
+    if (data.refresh_token) storeRefreshToken(data.refresh_token);
     return data.access_token;
   } catch {
     return null;

@@ -49,8 +49,11 @@ export const logout = createAsyncThunk("auth/logout", async (_, { rejectWithValu
   try {
     await logoutUser();
   } catch (err) {
-    return rejectWithValue(err.message);
+    // Still clear local state even if the server call fails
   }
+  // Clear stored refresh token
+  const { clearStoredRefreshToken } = await import("../api/auth.js");
+  clearStoredRefreshToken();
 });
 
 export const silentRefresh = createAsyncThunk(
