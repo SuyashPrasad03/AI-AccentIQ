@@ -53,7 +53,7 @@ async def get_quota_status(identity: Identity, db: AsyncSession, ip_hash: str | 
                 AnonymousUsage.anon_session_id == lookup_key,
                 AnonymousUsage.ip_hash == ip_hash,
             )
-        )
+        ).limit(1)
     )
     usage = result.scalar_one_or_none()
     used = usage.analyses_used if usage else 0
@@ -161,7 +161,7 @@ async def _get_or_create_usage(
 
     if conditions:
         result = await db.execute(
-            select(AnonymousUsage).where(or_(*conditions))
+            select(AnonymousUsage).where(or_(*conditions)).limit(1)
         )
         usage = result.scalar_one_or_none()
         if usage:
