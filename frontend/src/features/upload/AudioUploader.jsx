@@ -183,6 +183,16 @@ export function AudioUploader() {
         🎤 Record with microphone
       </button>
 
+      {/* DPDP Privacy notice — always visible for anonymous users */}
+      <div className="flex items-start gap-2.5 px-4 py-3 bg-bg-soft rounded-[var(--radius-lg)] border border-border-soft">
+        <span className="text-base mt-0.5">🔒</span>
+        <p className="text-xs text-ink-muted leading-relaxed">
+          <strong className="text-ink">Privacy:</strong> Your audio is processed securely on our servers, never shared with third parties,
+          and automatically deleted after <strong>30 days</strong>. We comply with India's DPDP Act 2023.
+          Only text-based analysis is sent to AI — never your raw audio.
+        </p>
+      </div>
+
       {/* Error */}
       {errorMsg && (
         <div className="bg-danger-soft border border-danger/20 rounded-[var(--radius-lg)] px-5 py-3.5 animate-slide-up">
