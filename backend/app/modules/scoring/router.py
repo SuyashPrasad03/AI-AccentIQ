@@ -47,7 +47,7 @@ async def get_score(
     if identity.is_authenticated:
         if recording.user_id != identity.user_id:
             raise AuthorizationError(message="You don't have access to this recording.")
-    else:
+    elif identity.anon_session_id and recording.anon_session_id:
         if recording.anon_session_id != identity.anon_session_id:
             raise AuthorizationError(message="You don't have access to this recording.")
 
