@@ -50,3 +50,6 @@ Thumbs.db
 # ── Logs ─────────────────────────────────────────────────────
 *.log
 logs/
+
+# ── Docs (kept locally, not pushed to GitHub) ────────────────
+docs/
