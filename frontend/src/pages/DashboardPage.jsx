@@ -1,21 +1,34 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchQuota } from "../store/quotaSlice.js";
 import { selectIsAuthenticated } from "../store/authSlice.js";
 import { AudioUploader } from "../features/upload/AudioUploader.jsx";
+import { ConsentBanner } from "../features/auth/ConsentBanner.jsx";
 import { StatusFooterDot } from "../features/system-status/StatusFooterDot.jsx";
 import { PageLoader } from "../components/PageLoader.jsx";
+import { getConsentStatus } from "../api/quota.js";
 
 export function DashboardPage() {
   const dispatch = useDispatch();
   const isAuth = useSelector(selectIsAuthenticated);
   const initCalled = useRef(false);
+  const [hasConsent, setHasConsent] = useState(null); // null=loading, true/false
 
   useEffect(() => {
     if (initCalled.current) return;
     initCalled.current = true;
     dispatch(fetchQuota());
+
+    // Check consent status for authenticated users
+    if (isAuth) {
+      getConsentStatus()
+        .then((s) => setHasConsent(s.has_audio_processing_consent))
+        .catch(() => setHasConsent(true)); // on error, don't block
+    }
   }, []); // eslint-disable-line
+
+  // For authenticated users: show consent banner if not yet consented
+  const showConsentGate = isAuth && hasConsent === false;
 
   return (
     <PageLoader>
@@ -26,7 +39,13 @@ export function DashboardPage() {
           <p className="text-ink-muted text-sm mt-1">Upload a recording to analyze your pronunciation</p>
         </div>
 
-        <AudioUploader />
+        {showConsentGate ? (
+          <div className="animate-fade-in">
+            <ConsentBanner onConsented={() => setHasConsent(true)} />
+          </div>
+        ) : (
+          <AudioUploader />
+        )}
       </main>
 
       <footer className="border-t border-border py-8 px-6 mt-auto">
