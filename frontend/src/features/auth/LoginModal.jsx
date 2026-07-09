@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { login, selectAuthError, clearError } from "../../store/authSlice.js";
+import { ForgotPasswordModal } from "./ForgotPasswordModal.jsx";
 
 export function LoginModal({ onClose, onSwitchToRegister }) {
   const dispatch = useDispatch();
@@ -8,6 +9,7 @@ export function LoginModal({ onClose, onSwitchToRegister }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [showForgot, setShowForgot] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,6 +19,10 @@ export function LoginModal({ onClose, onSwitchToRegister }) {
     setSubmitting(false);
     if (login.fulfilled.match(result)) onClose();
   };
+
+  if (showForgot) {
+    return <ForgotPasswordModal onClose={onClose} onBack={() => setShowForgot(false)} />;
+  }
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-ink/25 backdrop-blur-sm animate-fade-in">
@@ -31,7 +37,10 @@ export function LoginModal({ onClose, onSwitchToRegister }) {
             <input type="email" className="px-4 py-3 border border-card-border rounded-[var(--radius-md)] text-sm focus:outline-none focus:border-primary" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" required />
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="text-xs font-semibold text-ink-muted">Password</span>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-ink-muted">Password</span>
+              <button type="button" className="text-[11px] text-primary hover:underline" onClick={() => setShowForgot(true)}>Forgot password?</button>
+            </div>
             <input type="password" className="px-4 py-3 border border-card-border rounded-[var(--radius-md)] text-sm focus:outline-none focus:border-primary" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Your password" required />
           </label>
           <button className="btn-primary w-full mt-2" type="submit" disabled={submitting}>

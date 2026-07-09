@@ -237,6 +237,99 @@ async def logout_user(refresh_token_plain: str, db: AsyncSession) -> None:
     logger.info("user_logged_out")
 
 
+async def forgot_password(email: str, db: AsyncSession, background_tasks=None) -> str:
+    """
+    Initiate password reset: verify user exists, send OTP.
+    Returns the email for the response message.
+    """
+    if not otp_rate_limiter.is_allowed(email):
+        raise ValidationError(
+            message="Too many verification codes requested. Please wait before trying again.",
+            details={"retry_after_seconds": 3600},
+        )
+
+    # Check user exists and is verified
+    result = await db.execute(
+        select(User).where(User.email == email, User.deleted_at.is_(None))
+    )
+    user = result.scalar_one_or_none()
+
+    if user is None or user.email_verified_at is None:
+        # Don't reveal whether account exists — still return success
+        logger.info("forgot_password_no_user", email=email)
+        return email
+
+    # Invalidate pending OTPs
+    await _invalidate_pending_otps(email, db)
+
+    # Generate + persist new OTP
+    otp_plain = generate_otp()
+    otp_record = OtpCode(
+        email=email,
+        code_hash=hash_otp(otp_plain),
+        purpose="password_reset",
+        expires_at=datetime.now(UTC) + timedelta(minutes=settings.otp_expiry_minutes),
+    )
+    db.add(otp_record)
+    await db.flush()
+
+    otp_rate_limiter.record(email)
+    logger.info("otp_sent", email=email, purpose="password_reset")
+
+    if background_tasks:
+        background_tasks.add_task(send_otp_email, to=email, otp=otp_plain, purpose="password reset")
+    else:
+        await send_otp_email(to=email, otp=otp_plain, purpose="password reset")
+
+    return email
+
+
+async def reset_password(
+    email: str,
+    otp_plain: str,
+    new_password: str,
+    db: AsyncSession,
+) -> tuple[User, str, str]:
+    """
+    Verify the reset OTP, update the user's password, issue new tokens.
+    Returns (user, access_token, refresh_token_plain).
+    """
+    otp_record = await _get_valid_otp(email, db)
+
+    otp_record.attempts += 1
+
+    if not verify_otp(otp_plain, otp_record.code_hash):
+        logger.warning("otp_invalid", email=email, attempts=otp_record.attempts)
+        if otp_record.attempts >= _MAX_OTP_ATTEMPTS:
+            otp_record.consumed_at = datetime.now(UTC)
+            raise ValidationError(
+                message="Too many failed attempts. Please request a new code.",
+            )
+        raise ValidationError(
+            message="Invalid verification code.",
+            details={"attempts_remaining": _MAX_OTP_ATTEMPTS - otp_record.attempts},
+        )
+
+    # Mark OTP as consumed
+    otp_record.consumed_at = datetime.now(UTC)
+
+    # Update user password
+    result = await db.execute(
+        select(User).where(User.email == email, User.deleted_at.is_(None))
+    )
+    user = result.scalar_one_or_none()
+    if user is None:
+        raise NotFoundError(message="User not found.")
+
+    user.password_hash = hash_password(new_password)
+    await db.flush()
+
+    # Issue new tokens (logs them in after reset)
+    access_token, refresh_plain = await _issue_tokens(user, db)
+    logger.info("password_reset", user_id=user.id, email=email)
+    return user, access_token, refresh_plain
+
+
 async def get_user_by_id(user_id: str, db: AsyncSession) -> User:
     """Fetch a non-deleted user by ID, or raise NotFoundError."""
     result = await db.execute(

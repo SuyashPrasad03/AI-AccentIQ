@@ -7,30 +7,34 @@
                                     │         EXTERNAL SERVICES           │
                                     │                                     │
                                     │  OpenRouter (Gemini 2.5 Flash Lite) │
-                                    │  Gmail SMTP (OTP emails)            │
+                                    │  Brevo HTTP API (OTP emails)        │
+                                    │  Deepgram Nova-2 (ASR)              │
                                     └──────────────┬──────────────────────┘
                                                    │ text-only API calls
-                                                   │ (NEVER audio)
+                                                   │ (NEVER audio to LLM)
 ┌──────────────┐    REST API     ┌─────────────────┴──────────────────┐
 │              │ ──────────────▶ │                                     │
 │   FRONTEND   │                 │           BACKEND (FastAPI)         │
 │  React+Vite  │ ◀────────────── │                                     │
-│  Port 5173   │    JSON + JWT   │  • Auth (JWT + OTP)                │
+│  Vercel      │    JSON + JWT   │  • Auth (JWT + OTP + Reset PW)     │
 │              │                 │  • Upload + FFmpeg preprocessing    │
 └──────────────┘                 │  • Deepgram transcription          │
                                  │  • Scoring engine                   │
                                  │  • RAG assistant                    │
-                                 │  Port 8080                          │
+                                 │  • Brevo email (HTTP API)           │
+                                 │  Render (Free Tier)                 │
                                  └───────┬──────────────┬──────────────┘
                                          │              │
                               ┌──────────┴───┐   ┌─────┴──────────┐
                               │    MySQL     │   │    MongoDB      │
+                              │   (Aiven)   │   │  (Atlas Free)   │
                               │              │   │                 │
                               │ Users        │   │ Transcripts     │
                               │ Scores       │   │ Phoneme analysis│
                               │ Quotas       │   │ Practice sets   │
                               │ Consent log  │   │ RAG KB chunks   │
                               │ Recordings   │   │ Explanation cache│
+                              │ OTP codes    │   │                 │
                               └──────────────┘   └─────────────────┘
                                          │
                               ┌──────────┴───┐
@@ -52,6 +56,7 @@ I use two databases because they serve different purposes. MySQL holds structure
 | **Phonemizer (espeak-ng)** | Generates the "correct" IPA pronunciation for any English word | Free, fast, runs locally. No API dependency. A commercial pronunciation API (like Google TTS) would cost money and add latency for something I need on every single word. |
 | **Gemini 2.5 Flash Lite (via OpenRouter)** | Generates coaching explanations and practice sentences | Cheap (~₹0.08 per call), fast, supports JSON mode. I use OpenRouter as the gateway so I can switch models without changing code. I never send audio to the LLM — only text metadata about phonemes. |
 | **FFmpeg** | Normalizes uploaded audio to 16kHz mono WAV | Deepgram accuracy drops on stereo/high-sample-rate input. Normalizing first is cheap and makes everything downstream reliable. |
+| **Brevo HTTP API** | Sends transactional emails (OTP codes) | Render blocks outbound SMTP ports (25, 465, 587). Brevo's HTTP API sends via HTTPS (port 443) which works everywhere. Free tier: 300 emails/day. |
 
 ---
 
@@ -60,20 +65,20 @@ I use two databases because they serve different purposes. MySQL holds structure
 Every word gets a score from 0 to 100 using this formula:
 
 ```
-Word Score = (60% × Confidence) + (20% × Timing) + (20% × Phoneme Accuracy)
+Word Score = (35% × Confidence) + (30% × Timing) + (35% × Phoneme Accuracy)
 ```
 
-**Confidence (60%):** How clearly Deepgram "heard" the word. If it's confident, the speaker was clear.
+**Confidence (35%):** How clearly Deepgram "heard" the word. If it's confident, the speaker was clear.
 
-**Timing (20%):** Did the word last about the right duration? Natural English is ~150 words per minute. Too fast or too slow reduces this score.
+**Timing (30%):** Did the word last about the right duration? Natural English is ~150 words per minute. Too fast or too slow reduces this score. Aggressive penalty for timing outliers.
 
-**Phoneme Accuracy (20%):** I compare what the speaker said against what it *should* sound like. For example, "think" should be /θɪŋk/. If someone says /tɪŋk/ (replacing TH with T), that's a phoneme substitution. I use a weighted distance function where common L2 errors (like θ→t) are penalized less harshly than completely wrong sounds (like θ→m).
+**Phoneme Accuracy (35%):** I compare what the speaker said against what it *should* sound like. For example, "think" should be /θɪŋk/. If someone says /tɪŋk/ (replacing TH with T), that's a phoneme substitution. I use a weighted distance function where common L2 errors (like θ→t) are penalized less harshly than completely wrong sounds (like θ→m).
 
 **How I decide what to highlight:**
-- Score ≥ 80 → Green (correct)
-- Phoneme distance > 0.3 → Red (mispronounced — I can tell you exactly which sound was wrong)
-- Confidence < 0.6 → Orange (unclear — the word wasn't captured clearly)
-- Timing off by > 50% → Blue (mistimed — rhythm issue)
+- Score ≥ 80 → Blue (correct — clearly recognized)
+- Phoneme distance > 0.3 → Red (mispronounced — can tell you which sound was wrong)
+- Confidence < 0.6 → Amber (unclear — the word wasn't captured clearly)
+- Timing off by > 50% → Orange (mistimed — rhythm issue)
 
 The overall score is a duration-weighted average of all word scores. I also track which phonemes appear in 2+ mistakes — those become the "weak sounds" that feed the practice generator.
 
@@ -107,6 +112,8 @@ I took India's Digital Personal Data Protection Act 2023 seriously from the star
 | **CPU inference** for Deepgram (~30s per clip) | GPU-backed worker (RunPod or Render GPU tier) for <5s processing | Assessment scope — GPU hosting costs money. The UX handles the wait with staged progress UI. |
 | **Local disk storage** | S3-compatible object storage | The adapter pattern means swapping is one config change. Local disk is fine for single-server demo. |
 | **In-memory OTP rate limiter** | Redis-backed sliding window | Resets on server restart. Acceptable at assessment scale. |
+| **Brevo HTTP API for email** | Dedicated transactional email service (SendGrid, Postmark) | Render blocks SMTP ports. Brevo's HTTP API works over port 443. Free 300/day is sufficient. |
+| **localStorage for auth tokens** | Same-domain httpOnly cookies | Cross-domain deployment (Vercel + Render) means cookies don't work. localStorage with refresh token rotation is the pragmatic solution. |
 
 ---
 

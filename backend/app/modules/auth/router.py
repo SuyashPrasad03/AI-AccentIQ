@@ -19,10 +19,12 @@ from app.modules.auth import service
 from app.modules.auth.dependencies import get_current_user
 from app.modules.auth.models import User
 from app.modules.auth.schemas import (
+    ForgotPasswordRequest,
     LoginRequest,
     LogoutResponse,
     RegisterRequest,
     RegisterResponse,
+    ResetPasswordRequest,
     TokenResponse,
     UserOut,
     VerifyOtpRequest,
@@ -177,6 +179,49 @@ async def logout(
         await service.logout_user(refresh_token_plain=token, db=db)
     _clear_refresh_cookie(response)
     return LogoutResponse(message="Logged out successfully.")
+
+
+@router.post(
+    "/forgot-password",
+    response_model=RegisterResponse,
+    status_code=202,
+    summary="Send password reset OTP to email",
+)
+async def forgot_password(
+    body: ForgotPasswordRequest,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+) -> RegisterResponse:
+    email = await service.forgot_password(email=body.email, db=db, background_tasks=background_tasks)
+    return RegisterResponse(
+        message="If an account exists with this email, a reset code has been sent.",
+        email=email,
+    )
+
+
+@router.post(
+    "/reset-password",
+    response_model=TokenResponse,
+    summary="Reset password using OTP → issue new tokens",
+)
+async def reset_password(
+    body: ResetPasswordRequest,
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+) -> TokenResponse:
+    user, access_token, refresh_plain = await service.reset_password(
+        email=body.email,
+        otp_plain=body.otp,
+        new_password=body.new_password,
+        db=db,
+    )
+    _set_refresh_cookie(response, refresh_plain)
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=refresh_plain,
+        expires_in=settings.jwt_access_token_expire_minutes * 60,
+        user=UserOut.model_validate(user),
+    )
 
 
 @router.get(

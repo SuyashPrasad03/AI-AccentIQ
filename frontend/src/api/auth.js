@@ -32,6 +32,22 @@ export async function verifyOtp(email, otp, password) {
   return data;
 }
 
+export async function forgotPassword(email) {
+  return apiFetch("/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+export async function resetPassword(email, otp, new_password) {
+  const data = await apiFetch("/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify({ email, otp, new_password }),
+  });
+  if (data.refresh_token) storeRefreshToken(data.refresh_token);
+  return data;
+}
+
 export async function loginUser(email, password) {
   const data = await apiFetch("/auth/login", {
     method: "POST",

@@ -32,14 +32,28 @@
         <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="landing" target="login" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
 
         <!-- Register -->
-        <mxCell id="register" value="REGISTER&#xa;(New User)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
+        <mxCell id="register" value="REGISTER&#xa;(3-Step)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
           <mxGeometry x="170" y="460" width="100" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="otp" value="📧 OTP Email&#xa;Verification" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=9;" vertex="1" parent="1">
+        <mxCell id="otp" value="📧 OTP Email&#xa;(Brevo HTTP)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=9;" vertex="1" parent="1">
           <mxGeometry x="60" y="450" width="90" height="50" as="geometry" />
         </mxCell>
         <mxCell id="e_reg" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="landing" target="register" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
         <mxCell id="e_otp" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="otp" target="register" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <!-- Register Steps Detail -->
+        <mxCell id="reg_steps" value="1. Enter Email → Send OTP&#xa;2. Verify OTP Code&#xa;3. Set Password → Account Created" style="text;html=1;align=left;verticalAlign=top;fontSize=8;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="60" y="510" width="180" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- Forgot Password -->
+        <mxCell id="forgot_pw" value="🔑 Forgot&#xa;Password" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="280" y="420" width="80" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="e_forgot" style="edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" source="login" target="forgot_pw" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="forgot_steps" value="Email → OTP → New Password" style="text;html=1;align=left;fontSize=7;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="280" y="458" width="130" height="15" as="geometry" />
+        </mxCell>
 
         <!-- Auth Check -->
         <mxCell id="auth_check" value="AUTH?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=10;" vertex="1" parent="1">
@@ -176,8 +190,8 @@
         <mxCell id="e_quota" style="edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" source="anon" target="quota" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
 
         <!-- Tech Stack Box -->
-        <mxCell id="tech" value="TECH STACK&#xa;━━━━━━━━━━━━━━━━━━━━&#xa;Frontend: React + Vite + Tailwind&#xa;Backend: FastAPI (Python 3.11)&#xa;ASR: Deepgram + Forced Alignment&#xa;Phonemes: Phonemizer (espeak-ng)&#xa;LLM: Gemini via OpenRouter&#xa;DB: MySQL + MongoDB&#xa;Storage: Local (S3-adapter ready)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=8;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
-          <mxGeometry x="1100" y="500" width="210" height="140" as="geometry" />
+        <mxCell id="tech" value="TECH STACK&#xa;━━━━━━━━━━━━━━━━━━━━&#xa;Frontend: React + Vite + Tailwind (Vercel)&#xa;Backend: FastAPI Python 3.11 (Render)&#xa;ASR: Deepgram Nova-2 (Cloud API)&#xa;Phonemes: Phonemizer (espeak-ng)&#xa;LLM: Gemini via OpenRouter&#xa;Email: Brevo HTTP API&#xa;DB: MySQL (Aiven) + MongoDB (Atlas)&#xa;Auth: JWT + OTP + Forgot/Reset PW&#xa;Storage: Local (S3-adapter ready)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=8;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="500" width="220" height="160" as="geometry" />
         </mxCell>
 
       </root>

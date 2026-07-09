@@ -19,9 +19,39 @@ class RegisterRequest(BaseModel):
 class VerifyOtpRequest(BaseModel):
     email: EmailStr
     otp: str = Field(..., min_length=6, max_length=6, pattern=r"^\d{6}$")
+    password: str = Field("", max_length=128)  # Optional during OTP-only verification
+
+    model_config = {"str_strip_whitespace": True}
+
+
+class SetPasswordRequest(BaseModel):
+    """Set password after OTP verification or change existing password."""
+    email: EmailStr
+    otp: str = Field(..., min_length=6, max_length=6, pattern=r"^\d{6}$")
     password: str = Field(..., min_length=8, max_length=128)
 
     @field_validator("password")
+    @classmethod
+    def password_not_trivial(cls, v: str) -> str:
+        if v.isdigit():
+            raise ValueError("Password must contain at least one non-digit character.")
+        return v
+
+    model_config = {"str_strip_whitespace": True}
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+    model_config = {"str_strip_whitespace": True}
+
+
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr
+    otp: str = Field(..., min_length=6, max_length=6, pattern=r"^\d{6}$")
+    new_password: str = Field(..., min_length=8, max_length=128)
+
+    @field_validator("new_password")
     @classmethod
     def password_not_trivial(cls, v: str) -> str:
         if v.isdigit():
@@ -36,25 +66,6 @@ class LoginRequest(BaseModel):
     password: str = Field(..., min_length=1)
 
     model_config = {"str_strip_whitespace": True}
-
-
-class RefreshRequest(BaseModel):
-    """Body-based refresh — the refresh token is read from the httpOnly cookie,
-    but this schema is kept for any clients that prefer body delivery."""
-    pass  # Token comes from cookie; body is empty
-
-
-class SetPasswordRequest(BaseModel):
-    """Used when a verified user wants to change their password later."""
-    current_password: str = Field(..., min_length=1)
-    new_password: str = Field(..., min_length=8, max_length=128)
-
-    @field_validator("new_password")
-    @classmethod
-    def new_password_not_trivial(cls, v: str) -> str:
-        if v.isdigit():
-            raise ValueError("Password must contain at least one non-digit character.")
-        return v
 
 
 # ── Response schemas ──────────────────────────────────────────────────────────
