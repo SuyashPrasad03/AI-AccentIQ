@@ -34,8 +34,23 @@ export function RecordingHistory({ onSelect, onHistoryLoad }) {
       .finally(() => setLoading(false));
   };
 
+  const prevAuth = useRef(isAuth);
+
   useEffect(() => {
-    if (!isAuth || fetched.current) return;
+    // When auth state changes (login/logout/switch user), reset history
+    if (prevAuth.current !== isAuth) {
+      prevAuth.current = isAuth;
+      fetched.current = false;
+      setEntries([]);
+      setTotal(0);
+      setOffset(0);
+      setSelected(new Set());
+      setSelectMode(false);
+      onHistoryLoad?.(null);
+    }
+
+    if (!isAuth) return;
+    if (fetched.current) return;
     fetched.current = true;
     fetchPage(0);
   }, [isAuth]); // eslint-disable-line
