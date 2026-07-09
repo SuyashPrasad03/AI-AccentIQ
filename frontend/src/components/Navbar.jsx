@@ -32,7 +32,7 @@ export function Navbar() {
 
           <div className="flex items-center gap-2.5">
             {/* Quota pill on dashboard */}
-            {!isAuth && !isLanding && quota.status === "succeeded" && (
+            {!isAuth && !isLanding && (quota.status === "succeeded" || quota.status === "idle") && (
               <span className="pill pill-muted text-[10px]">{quota.remaining}/{quota.limit} free</span>
             )}
 

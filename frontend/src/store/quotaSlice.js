@@ -54,6 +54,11 @@ const quotaSlice = createSlice({
       })
       .addCase(fetchQuota.rejected, (state) => {
         state.status = "failed";
+        // Keep defaults showing (3/3) rather than hiding the pill
+        if (state.used === 0 && state.limit === 0) {
+          state.limit = 3;
+          state.remaining = 3;
+        }
       });
   },
 });

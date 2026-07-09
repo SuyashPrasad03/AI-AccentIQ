@@ -78,15 +78,29 @@ class SmtpEmailSender(EmailSender):
 
 
 def get_email_sender() -> EmailSender:
-    """Return the appropriate EmailSender based on settings."""
-    if settings.email_console_fallback or not settings.smtp_password:
-        return ConsoleEmailSender()
-    return SmtpEmailSender()
+    """Return the appropriate EmailSender based on settings.
+    
+    Uses real SMTP if credentials are provided, unless explicitly forced to console.
+    In production/staging with SMTP credentials, always sends real email.
+    """
+    # If SMTP password is set and we're not in dev with explicit console fallback, use SMTP
+    if settings.smtp_password and settings.smtp_host:
+        if settings.email_console_fallback and settings.app_env == "development":
+            return ConsoleEmailSender()
+        return SmtpEmailSender()
+    return ConsoleEmailSender()
 
 
 async def send_otp_email(to: str, otp: str, purpose: str = "registration") -> None:
     """Convenience function for sending an OTP email."""
     sender = get_email_sender()
+    logger.info(
+        "otp_email_sending",
+        to=to,
+        sender_type=type(sender).__name__,
+        smtp_host=settings.smtp_host,
+        app_env=settings.app_env,
+    )
     subject = "Your AccentIQ verification code"
     text_body = (
         f"Your {purpose} code is: {otp}\n\n"

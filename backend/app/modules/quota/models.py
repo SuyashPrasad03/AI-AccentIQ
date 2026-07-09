@@ -25,7 +25,7 @@ class AnonymousUsage(Base):
     )
     # Soft device fingerprint — SHA-256(IP + User-Agent).  Not PII-grade, just a
     # secondary signal to raise the bar for quota bypass via cookie deletion.
-    ip_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    ip_hash: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     analyses_used: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     first_seen_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

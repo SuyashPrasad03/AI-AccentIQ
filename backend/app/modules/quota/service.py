@@ -45,15 +45,26 @@ async def get_quota_status(identity: Identity, db: AsyncSession, ip_hash: str | 
             remaining=settings.anonymous_free_analyses,
         )
 
-    # Look up by either anon_session_id or ip_hash
+    # Look up by either anon_session_id or ip_hash — order by most-used to get the "real" row
     from sqlalchemy import or_
+    conditions = []
+    if lookup_key:
+        conditions.append(AnonymousUsage.anon_session_id == lookup_key)
+    if ip_hash:
+        conditions.append(AnonymousUsage.ip_hash == ip_hash)
+
+    if not conditions:
+        return QuotaStatusResponse(
+            used=0,
+            limit=settings.anonymous_free_analyses,
+            requires_auth=False,
+            remaining=settings.anonymous_free_analyses,
+        )
+
     result = await db.execute(
         select(AnonymousUsage).where(
-            or_(
-                AnonymousUsage.anon_session_id == lookup_key,
-                AnonymousUsage.ip_hash == ip_hash,
-            )
-        ).limit(1)
+            or_(*conditions)
+        ).order_by(AnonymousUsage.analyses_used.desc()).limit(1)
     )
     usage = result.scalar_one_or_none()
     used = usage.analyses_used if usage else 0
@@ -149,6 +160,8 @@ async def _get_or_create_usage(
     """
     Fetch or create an AnonymousUsage row.
     Uses ip_hash as fallback lookup when anon_session_id isn't available (cross-domain).
+    Orders by analyses_used DESC to always return the row with highest usage (prevents
+    quota bypass from duplicate rows).
     """
     from sqlalchemy import or_
 
@@ -161,18 +174,48 @@ async def _get_or_create_usage(
 
     if conditions:
         result = await db.execute(
-            select(AnonymousUsage).where(or_(*conditions)).limit(1)
+            select(AnonymousUsage)
+            .where(or_(*conditions))
+            .order_by(AnonymousUsage.analyses_used.desc())
+            .limit(1)
         )
         usage = result.scalar_one_or_none()
         if usage:
+            # Update ip_hash if it wasn't set before
+            if ip_hash and not usage.ip_hash:
+                usage.ip_hash = ip_hash
             return usage
 
-    # Create new row
+    # Create new row — handle potential unique constraint violation
+    from sqlalchemy.exc import IntegrityError
     usage = AnonymousUsage(
         anon_session_id=anon_session_id or (ip_hash or "unknown"),
         ip_hash=ip_hash,
         analyses_used=0,
     )
     db.add(usage)
-    await db.flush()
+    try:
+        await db.flush()
+    except IntegrityError:
+        await db.rollback()
+        # Race condition or duplicate — re-fetch
+        if conditions:
+            result = await db.execute(
+                select(AnonymousUsage)
+                .where(or_(*conditions))
+                .order_by(AnonymousUsage.analyses_used.desc())
+                .limit(1)
+            )
+            usage = result.scalar_one_or_none()
+            if usage:
+                return usage
+        # Absolute fallback — create with unique ID
+        import uuid
+        usage = AnonymousUsage(
+            anon_session_id=str(uuid.uuid4()),
+            ip_hash=ip_hash,
+            analyses_used=0,
+        )
+        db.add(usage)
+        await db.flush()
     return usage
