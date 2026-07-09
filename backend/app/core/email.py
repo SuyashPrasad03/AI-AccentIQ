@@ -52,29 +52,28 @@ class ConsoleEmailSender(EmailSender):
 
 
 class HttpEmailSender(EmailSender):
-    """Send email via Brevo (Sendinblue) HTTP API — works on platforms that block SMTP."""
+    """Send email via Resend HTTP API — works on platforms that block SMTP."""
 
     async def send(self, *, to: str, subject: str, html_body: str, text_body: str) -> None:
-        api_key = settings.brevo_api_key
+        api_key = settings.resend_api_key
         if not api_key:
             logger.error("email_http_no_api_key", to=to)
             return
 
         payload = json.dumps({
-            "sender": {"name": settings.smtp_from_name, "email": settings.smtp_from_address},
-            "to": [{"email": to}],
+            "from": f"{settings.smtp_from_name} <onboarding@resend.dev>",
+            "to": [to],
             "subject": subject,
-            "htmlContent": html_body,
-            "textContent": text_body,
+            "html": html_body,
+            "text": text_body,
         }).encode("utf-8")
 
         req = urllib.request.Request(
-            "https://api.brevo.com/v3/smtp/email",
+            "https://api.resend.com/emails",
             data=payload,
             headers={
-                "accept": "application/json",
-                "api-key": api_key,
-                "content-type": "application/json",
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
             },
             method="POST",
         )
@@ -123,12 +122,12 @@ def get_email_sender() -> EmailSender:
     """Return the appropriate EmailSender based on settings.
     
     Priority:
-      1. Brevo HTTP API (if BREVO_API_KEY is set) — works everywhere including Render
+      1. Resend HTTP API (if RESEND_API_KEY is set) — works everywhere including Render
       2. SMTP (if smtp_password is set and not in dev-console mode)
       3. Console fallback
     """
     # Prefer HTTP API — works on platforms that block SMTP (Render, Railway, etc.)
-    if settings.brevo_api_key:
+    if settings.resend_api_key:
         return HttpEmailSender()
 
     # Fall back to SMTP if credentials are available
