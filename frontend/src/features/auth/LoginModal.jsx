@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { login, selectAuthError, clearError } from "../../store/authSlice.js";
+import { PasswordInput } from "../../components/PasswordInput.jsx";
 import { ForgotPasswordModal } from "./ForgotPasswordModal.jsx";
 
 export function LoginModal({ onClose, onSwitchToRegister }) {
@@ -41,7 +42,7 @@ export function LoginModal({ onClose, onSwitchToRegister }) {
               <span className="text-xs font-semibold text-ink-muted">Password</span>
               <button type="button" className="text-[11px] text-primary hover:underline" onClick={() => setShowForgot(true)}>Forgot password?</button>
             </div>
-            <input type="password" className="px-4 py-3 border border-card-border rounded-[var(--radius-md)] text-sm focus:outline-none focus:border-primary" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Your password" required />
+            <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Your password" />
           </label>
           <button className="btn-primary w-full mt-2" type="submit" disabled={submitting}>
             {submitting ? "Signing in…" : "Sign in"}

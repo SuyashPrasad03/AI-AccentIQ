@@ -18,14 +18,18 @@ export function DashboardPage() {
     if (initCalled.current) return;
     initCalled.current = true;
     dispatch(fetchQuota());
+  }, []); // eslint-disable-line
 
-    // Check consent status for authenticated users
+  // Check consent for authenticated users (on mount and when auth state changes)
+  useEffect(() => {
     if (isAuth) {
       getConsentStatus()
         .then((s) => setHasConsent(s.has_audio_processing_consent))
         .catch(() => setHasConsent(true)); // on error, don't block
+    } else {
+      setHasConsent(null); // not relevant for guest users
     }
-  }, []); // eslint-disable-line
+  }, [isAuth]);
 
   // For authenticated users: show consent banner if not yet consented
   const showConsentGate = isAuth && hasConsent === false;

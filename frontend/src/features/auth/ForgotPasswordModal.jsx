@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { OtpInput } from "./OtpInput.jsx";
+import { PasswordInput } from "../../components/PasswordInput.jsx";
 import { forgotPassword, resetPassword } from "../../api/auth.js";
 import { setAccessToken } from "../../store/authSlice.js";
 
@@ -77,11 +78,11 @@ export function ForgotPasswordModal({ onClose, onBack }) {
             </div>
             <label className="flex flex-col gap-1.5">
               <span className="text-xs font-semibold text-ink-muted">New password</span>
-              <input type="password" className="px-4 py-3 border border-card-border rounded-[var(--radius-md)] text-sm focus:outline-none focus:border-primary" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 8 characters" required />
+              <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 8 characters" />
             </label>
             <label className="flex flex-col gap-1.5">
               <span className="text-xs font-semibold text-ink-muted">Confirm new password</span>
-              <input type="password" className="px-4 py-3 border border-card-border rounded-[var(--radius-md)] text-sm focus:outline-none focus:border-primary" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repeat password" required />
+              <PasswordInput value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repeat password" />
             </label>
             <button className="btn-primary w-full" type="submit" disabled={submitting}>
               {submitting ? "Resetting…" : "Reset password"}
