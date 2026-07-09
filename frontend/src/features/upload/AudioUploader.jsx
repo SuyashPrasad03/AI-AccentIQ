@@ -24,6 +24,7 @@ export function AudioUploader() {
   const chunksRef = useRef([]);
   const timerRef = useRef(null);
   const startTimeRef = useRef(null);
+  const cancelledRef = useRef(false);
 
   useEffect(() => {
     return () => {
@@ -47,6 +48,7 @@ export function AudioUploader() {
 
   const startRecording = async () => {
     setErrorMsg(""); setResult(null); setDuration(0);
+    cancelledRef.current = false;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
@@ -56,6 +58,8 @@ export function AudioUploader() {
       recorder.onstop = async () => {
         stream.getTracks().forEach((t) => t.stop());
         if (timerRef.current) clearInterval(timerRef.current);
+        // If user cancelled, don't upload
+        if (cancelledRef.current) return;
         await new Promise((r) => setTimeout(r, 100));
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
         if (blob.size < 1000) { setMode("idle"); setErrorMsg("Recording was too short or empty. Try again."); return; }
@@ -136,8 +140,14 @@ export function AudioUploader() {
         </div>
         <div className="flex gap-3">
           <button className="btn-secondary" onClick={() => {
-            if (mediaRecorderRef.current?.state !== "inactive") { mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop()); mediaRecorderRef.current = null; }
-            if (timerRef.current) clearInterval(timerRef.current); setMode("idle"); setDuration(0);
+            cancelledRef.current = true;
+            if (mediaRecorderRef.current?.state !== "inactive") {
+              mediaRecorderRef.current.stop();
+              mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop());
+            }
+            mediaRecorderRef.current = null;
+            if (timerRef.current) clearInterval(timerRef.current);
+            setMode("idle"); setDuration(0);
           }}>Cancel</button>
           <button className="btn-primary" onClick={stopRecording} disabled={duration < MIN_DURATION}>
             {duration < MIN_DURATION ? "Recording…" : "⏹ Stop & analyze"}
@@ -182,6 +192,15 @@ export function AudioUploader() {
       <button className="btn-primary w-full py-4 text-base" onClick={startRecording}>
         🎤 Record with microphone
       </button>
+
+      {/* Tip for best results */}
+      <div className="flex items-start gap-2.5 px-4 py-3 bg-blue-50 rounded-[var(--radius-lg)] border border-blue-200">
+        <span className="text-base mt-0.5">💡</span>
+        <p className="text-xs text-ink-muted leading-relaxed">
+          <strong className="text-ink">Tip:</strong> For best results, read an <strong>English</strong> sentence or paragraph aloud.
+          The AI compares what you said against standard English pronunciation — speaking clearly for 5-45 seconds gives the most accurate feedback.
+        </p>
+      </div>
 
       {/* DPDP Privacy notice — always visible for anonymous users */}
       <div className="flex items-start gap-2.5 px-4 py-3 bg-bg-soft rounded-[var(--radius-lg)] border border-border-soft">
