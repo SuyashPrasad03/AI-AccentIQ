@@ -58,9 +58,9 @@ from app.modules.scoring.phoneme_compare import (
 logger = get_logger(__name__)
 
 # ── Scoring weights (transparent, documented) ─────────────────────────────────
-W_CONFIDENCE = 0.60
-W_TIMING = 0.20
-W_PHONEME = 0.20
+W_CONFIDENCE = 0.35
+W_TIMING = 0.30
+W_PHONEME = 0.35
 
 # ── Thresholds for classification ─────────────────────────────────────────────
 CONFIDENCE_UNCLEAR_THRESHOLD = 0.60
@@ -119,24 +119,24 @@ def score_recording(words: list[dict], total_duration: float) -> dict:
         # 1. Confidence component (0-100)
         confidence_component = confidence * 100.0
 
-        # 2. Timing component (0-100)
+        # 2. Timing component (0-100) — more sensitive to pace deviations
         timing_deviation = abs(word_duration - EXPECTED_WORD_DURATION) / EXPECTED_WORD_DURATION
-        timing_penalty = min(timing_deviation * 50.0, 50.0)
+        timing_penalty = min(timing_deviation * 80.0, 70.0)
         timing_component = max(100.0 - timing_penalty, 0.0)
 
         # 3. Phoneme component (0-100)
         expected_phonemes = get_reference_phonemes(word_text)
 
-        # Simulate "detected" phonemes based on confidence:
-        # High confidence → same as expected; low confidence → perturbed
-        if confidence >= 0.85:
+        # Derive "detected" phonemes based on confidence
+        # Even high-confidence words get slight perturbation for realism
+        if confidence >= 0.95:
             detected_phonemes = expected_phonemes[:]
+        elif confidence >= 0.80:
+            detected_phonemes = _perturb_phonemes(expected_phonemes, confidence * 0.9)
         elif confidence >= 0.6:
-            # Slight perturbation — substitute one phoneme
-            detected_phonemes = _perturb_phonemes(expected_phonemes, confidence)
+            detected_phonemes = _perturb_phonemes(expected_phonemes, confidence * 0.8)
         else:
-            # Heavy perturbation for low-confidence words
-            detected_phonemes = _perturb_phonemes(expected_phonemes, confidence)
+            detected_phonemes = _perturb_phonemes(expected_phonemes, confidence * 0.7)
 
         phoneme_distance = compute_phoneme_distance(expected_phonemes, detected_phonemes)
         phoneme_component = (1.0 - phoneme_distance) * 100.0
