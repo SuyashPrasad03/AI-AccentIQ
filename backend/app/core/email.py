@@ -52,14 +52,49 @@ class ConsoleEmailSender(EmailSender):
 
 
 class HttpEmailSender(EmailSender):
-    """Send email via Resend HTTP API — works on platforms that block SMTP."""
+    """Send email via Brevo (Sendinblue) HTTP API — works on platforms that block SMTP.
+    Free tier: 300 emails/day, no domain verification needed."""
 
     async def send(self, *, to: str, subject: str, html_body: str, text_body: str) -> None:
-        api_key = settings.resend_api_key
+        api_key = settings.brevo_api_key
         if not api_key:
+            # Fallback: try Resend
+            if settings.resend_api_key:
+                await self._send_resend(to=to, subject=subject, html_body=html_body, text_body=text_body)
+                return
             logger.error("email_http_no_api_key", to=to)
             return
 
+        payload = json.dumps({
+            "sender": {"name": settings.smtp_from_name, "email": settings.smtp_from_address},
+            "to": [{"email": to}],
+            "subject": subject,
+            "htmlContent": html_body,
+            "textContent": text_body,
+        }).encode("utf-8")
+
+        req = urllib.request.Request(
+            "https://api.brevo.com/v3/smtp/email",
+            data=payload,
+            headers={
+                "accept": "application/json",
+                "api-key": api_key,
+                "content-type": "application/json",
+            },
+            method="POST",
+        )
+
+        try:
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                logger.info("email_sent_http", to=to, subject=subject, status=resp.status, provider="brevo")
+        except urllib.error.HTTPError as exc:
+            body = exc.read().decode("utf-8", errors="replace")
+            logger.error("email_http_failed", to=to, status=exc.code, body=body, provider="brevo")
+        except Exception as exc:
+            logger.error("email_http_error", to=to, error=str(exc), provider="brevo")
+
+    async def _send_resend(self, *, to: str, subject: str, html_body: str, text_body: str) -> None:
+        """Fallback to Resend API."""
         payload = json.dumps({
             "from": f"{settings.smtp_from_name} <onboarding@resend.dev>",
             "to": [to],
@@ -72,7 +107,7 @@ class HttpEmailSender(EmailSender):
             "https://api.resend.com/emails",
             data=payload,
             headers={
-                "Authorization": f"Bearer {api_key}",
+                "Authorization": f"Bearer {settings.resend_api_key}",
                 "Content-Type": "application/json",
             },
             method="POST",
@@ -80,12 +115,12 @@ class HttpEmailSender(EmailSender):
 
         try:
             with urllib.request.urlopen(req, timeout=15) as resp:
-                logger.info("email_sent_http", to=to, subject=subject, status=resp.status)
+                logger.info("email_sent_http", to=to, subject=subject, status=resp.status, provider="resend")
         except urllib.error.HTTPError as exc:
             body = exc.read().decode("utf-8", errors="replace")
-            logger.error("email_http_failed", to=to, status=exc.code, body=body)
+            logger.error("email_http_failed", to=to, status=exc.code, body=body, provider="resend")
         except Exception as exc:
-            logger.error("email_http_error", to=to, error=str(exc))
+            logger.error("email_http_error", to=to, error=str(exc), provider="resend")
 
 
 class SmtpEmailSender(EmailSender):
@@ -122,12 +157,13 @@ def get_email_sender() -> EmailSender:
     """Return the appropriate EmailSender based on settings.
     
     Priority:
-      1. Resend HTTP API (if RESEND_API_KEY is set) — works everywhere including Render
-      2. SMTP (if smtp_password is set and not in dev-console mode)
-      3. Console fallback
+      1. Brevo HTTP API (if BREVO_API_KEY is set) — works everywhere, any recipient
+      2. Resend HTTP API (if RESEND_API_KEY is set) — limited to account email on free tier
+      3. SMTP (if smtp_password is set and not in dev-console mode)
+      4. Console fallback
     """
     # Prefer HTTP API — works on platforms that block SMTP (Render, Railway, etc.)
-    if settings.resend_api_key:
+    if settings.brevo_api_key or settings.resend_api_key:
         return HttpEmailSender()
 
     # Fall back to SMTP if credentials are available

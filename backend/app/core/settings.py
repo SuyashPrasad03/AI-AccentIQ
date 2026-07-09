@@ -103,6 +103,8 @@ class Settings(BaseSettings):
 
     # Resend HTTP API — works on Render/Railway where SMTP is blocked
     resend_api_key: str = ""
+    # Brevo (Sendinblue) HTTP API — free 300/day, sends to ANY recipient
+    brevo_api_key: str = ""
 
     # ── Anonymous quota ───────────────────────────────────────
     anonymous_free_analyses: int = 3
