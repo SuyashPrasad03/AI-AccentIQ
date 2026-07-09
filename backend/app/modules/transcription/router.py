@@ -35,13 +35,10 @@ async def _get_owned_recording(
     if recording is None:
         raise NotFoundError(message="Recording not found.")
 
-    # Owner check — skip for anonymous users without session (cross-domain deployment)
-    if identity.is_authenticated:
+    # Owner check — relaxed for cross-domain deployment
+    # Only enforce if we can positively identify the user AND they don't match
+    if identity.is_authenticated and recording.user_id:
         if recording.user_id != identity.user_id:
-            raise AuthorizationError(message="You don't have access to this recording.")
-    # For anon users: if they have a session, check it. If not (cross-domain), allow access.
-    elif identity.anon_session_id and recording.anon_session_id:
-        if recording.anon_session_id != identity.anon_session_id:
             raise AuthorizationError(message="You don't have access to this recording.")
 
     return recording

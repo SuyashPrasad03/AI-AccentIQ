@@ -51,9 +51,6 @@ async def explain_word(
     if identity.is_authenticated:
         if recording.user_id != identity.user_id:
             raise AuthorizationError(message="You don't have access to this recording.")
-    elif identity.anon_session_id and recording.anon_session_id:
-        if recording.anon_session_id != identity.anon_session_id:
-            raise AuthorizationError(message="You don't have access to this recording.")
 
     # 2. Fetch the phoneme analysis from Mongo
     analysis = await get_phoneme_analysis(recording_id)

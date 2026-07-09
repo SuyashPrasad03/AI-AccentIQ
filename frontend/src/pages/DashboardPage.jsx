@@ -16,8 +16,8 @@ export function DashboardPage() {
   const requiresAuth = useSelector(selectRequiresAuth);
   const initCalled = useRef(false);
 
-  const [hasConsent, setHasConsent] = useState(false);
-  const [consentChecked, setConsentChecked] = useState(false);
+  const [hasConsent, setHasConsent] = useState(true);
+  const [consentChecked, setConsentChecked] = useState(true);
   const [showRegister, setShowRegister] = useState(false);
 
   useEffect(() => {
