@@ -101,6 +101,9 @@ class Settings(BaseSettings):
     otp_rate_limit_per_hour: int = 5
     otp_expiry_minutes: int = 10
 
+    # Brevo (Sendinblue) HTTP API — works on Render/Railway where SMTP is blocked
+    brevo_api_key: str = ""
+
     # ── Anonymous quota ───────────────────────────────────────
     anonymous_free_analyses: int = 3
 

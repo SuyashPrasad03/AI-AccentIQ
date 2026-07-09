@@ -2,15 +2,19 @@
 EmailSender abstraction.
 
 Concrete implementations:
-  SmtpEmailSender  — sends real email via SMTP (production / staging)
+  HttpEmailSender    — sends via HTTP API (Render/serverless where SMTP ports are blocked)
+  SmtpEmailSender    — sends real email via SMTP (when outbound SMTP is available)
   ConsoleEmailSender — prints to stdout (development / CI when SMTP not configured)
 
-The active sender is resolved at runtime based on settings.email_console_fallback.
+The active sender is resolved at runtime based on settings.
 Import `send_email` for fire-and-forget usage, or `get_email_sender()` for DI.
 """
 
+import json
 import smtplib
 import ssl
+import urllib.request
+import urllib.error
 from abc import ABC, abstractmethod
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -47,6 +51,44 @@ class ConsoleEmailSender(EmailSender):
         )
 
 
+class HttpEmailSender(EmailSender):
+    """Send email via Brevo (Sendinblue) HTTP API — works on platforms that block SMTP."""
+
+    async def send(self, *, to: str, subject: str, html_body: str, text_body: str) -> None:
+        api_key = settings.brevo_api_key
+        if not api_key:
+            logger.error("email_http_no_api_key", to=to)
+            return
+
+        payload = json.dumps({
+            "sender": {"name": settings.smtp_from_name, "email": settings.smtp_from_address},
+            "to": [{"email": to}],
+            "subject": subject,
+            "htmlContent": html_body,
+            "textContent": text_body,
+        }).encode("utf-8")
+
+        req = urllib.request.Request(
+            "https://api.brevo.com/v3/smtp/email",
+            data=payload,
+            headers={
+                "accept": "application/json",
+                "api-key": api_key,
+                "content-type": "application/json",
+            },
+            method="POST",
+        )
+
+        try:
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                logger.info("email_sent_http", to=to, subject=subject, status=resp.status)
+        except urllib.error.HTTPError as exc:
+            body = exc.read().decode("utf-8", errors="replace")
+            logger.error("email_http_failed", to=to, status=exc.code, body=body)
+        except Exception as exc:
+            logger.error("email_http_error", to=to, error=str(exc))
+
+
 class SmtpEmailSender(EmailSender):
     """Send email via SMTP with TLS."""
 
@@ -80,14 +122,21 @@ class SmtpEmailSender(EmailSender):
 def get_email_sender() -> EmailSender:
     """Return the appropriate EmailSender based on settings.
     
-    Uses real SMTP if credentials are provided, unless explicitly forced to console.
-    In production/staging with SMTP credentials, always sends real email.
+    Priority:
+      1. Brevo HTTP API (if BREVO_API_KEY is set) — works everywhere including Render
+      2. SMTP (if smtp_password is set and not in dev-console mode)
+      3. Console fallback
     """
-    # If SMTP password is set and we're not in dev with explicit console fallback, use SMTP
+    # Prefer HTTP API — works on platforms that block SMTP (Render, Railway, etc.)
+    if settings.brevo_api_key:
+        return HttpEmailSender()
+
+    # Fall back to SMTP if credentials are available
     if settings.smtp_password and settings.smtp_host:
         if settings.email_console_fallback and settings.app_env == "development":
             return ConsoleEmailSender()
         return SmtpEmailSender()
+
     return ConsoleEmailSender()
 
 
