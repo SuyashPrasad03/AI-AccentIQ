@@ -51,12 +51,15 @@ def validate_mime_type(content_type: str | None, file_bytes: bytes) -> str:
 
     logger.info("mime_detected", detected=detected, header=content_type)
 
+    # Strip codec parameters (e.g. "audio/webm;codecs=opus" → "audio/webm")
+    base_mime = detected.split(";")[0].strip().lower()
+
     # Allow application/octet-stream through — browser MediaRecorder often
     # produces blobs with this type. ffprobe will reject truly invalid files.
-    if detected == "application/octet-stream":
+    if base_mime == "application/octet-stream":
         return detected
 
-    if detected not in _ALLOWED_MIMES:
+    if base_mime not in _ALLOWED_MIMES:
         raise ValidationError(
             message=f"Unsupported file type: {detected}. Please upload an audio file (MP3, WAV, M4A, WebM).",
             details={"detected_mime": detected, "allowed": list(_ALLOWED_MIMES)},
