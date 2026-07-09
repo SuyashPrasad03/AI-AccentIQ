@@ -38,13 +38,15 @@ function loadPersistedAuth() {
 
 /** Silent boot-time refresh — called once in App on mount. */
 export const initAuth = createAsyncThunk("auth/init", async (_, { rejectWithValue }) => {
-  // First try to refresh the token (gets a fresh access token)
+  // Use persisted auth immediately (instant — no network wait)
+  const persisted = loadPersistedAuth();
+
+  // Try to refresh the token in background (gets a fresh access token)
   try {
     const data = await refreshToken();
     return data; // { access_token, user, refresh_token }
   } catch {
-    // If refresh fails, fall back to persisted auth state
-    const persisted = loadPersistedAuth();
+    // If refresh fails but we have persisted state, use it
     if (persisted) return { access_token: persisted.accessToken, user: persisted.user };
     return rejectWithValue(null); // not logged in — not an error
   }
@@ -96,9 +98,9 @@ export const silentRefresh = createAsyncThunk(
 const authSlice = createSlice({
   name: "auth",
   initialState: {
-    user: null,
-    accessToken: null,
-    isLoading: true,   // true until initAuth settles
+    user: loadPersistedAuth()?.user || null,
+    accessToken: loadPersistedAuth()?.accessToken || null,
+    isLoading: false,  // never block rendering — use persisted state instantly
     error: null,
   },
   reducers: {

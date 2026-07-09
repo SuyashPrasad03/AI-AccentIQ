@@ -10,7 +10,6 @@ import "./App.css";
 
 export default function App() {
   const dispatch = useDispatch();
-  const isLoading = useSelector(selectAuthLoading);
   const initCalled = useRef(false);
 
   useEffect(() => {
@@ -19,15 +18,8 @@ export default function App() {
     dispatch(initAuth());
   }, [dispatch]);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-bg flex flex-col items-center justify-center gap-4">
-        <div className="w-10 h-10 border-[3px] border-border border-t-primary rounded-full animate-[spin_0.8s_linear_infinite]" />
-        <p className="text-ink-muted text-sm">Loading…</p>
-      </div>
-    );
-  }
-
+  // Don't block rendering — show the app immediately
+  // Auth resolves in background; persisted localStorage is used as instant fallback
   return (
     <BrowserRouter>
       <div className="min-h-screen bg-bg flex flex-col">
