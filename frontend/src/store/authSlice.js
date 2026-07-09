@@ -3,22 +3,49 @@
  *
  * State shape:
  *   user          – { id, email, email_verified_at, created_at } | null
- *   accessToken   – JWT string kept in memory (never localStorage) | null
+ *   accessToken   – JWT string | null
  *   isLoading     – true while the silent-refresh boot check is in flight
  *   error         – last auth error message | null
+ *
+ * Persistence: access token + user are stored in localStorage for cross-domain
+ * deployments where httpOnly cookies don't work.
  */
 
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { loginUser, verifyOtp, refreshToken, logoutUser } from "../api/auth.js";
+import { loginUser, verifyOtp, refreshToken, logoutUser, clearStoredRefreshToken } from "../api/auth.js";
+
+const AUTH_STORAGE_KEY = "accentiq_auth";
+
+function persistAuth(user, accessToken) {
+  if (user && accessToken) {
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ user, accessToken }));
+  } else {
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+  }
+}
+
+function loadPersistedAuth() {
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+    if (!raw) return null;
+    const { user, accessToken } = JSON.parse(raw);
+    if (user && accessToken) return { user, accessToken };
+  } catch { /* corrupted */ }
+  return null;
+}
 
 // ── Async thunks ────────────────────────────────────────────────────────────
 
 /** Silent boot-time refresh — called once in App on mount. */
 export const initAuth = createAsyncThunk("auth/init", async (_, { rejectWithValue }) => {
+  // First try to refresh the token (gets a fresh access token)
   try {
     const data = await refreshToken();
-    return data; // { access_token, user }
+    return data; // { access_token, user, refresh_token }
   } catch {
+    // If refresh fails, fall back to persisted auth state
+    const persisted = loadPersistedAuth();
+    if (persisted) return { access_token: persisted.accessToken, user: persisted.user };
     return rejectWithValue(null); // not logged in — not an error
   }
 });
@@ -45,15 +72,12 @@ export const verifyOtpAndRegister = createAsyncThunk(
   }
 );
 
-export const logout = createAsyncThunk("auth/logout", async (_, { rejectWithValue }) => {
+export const logout = createAsyncThunk("auth/logout", async () => {
   try {
     await logoutUser();
-  } catch (err) {
-    // Still clear local state even if the server call fails
-  }
-  // Clear stored refresh token
-  const { clearStoredRefreshToken } = await import("../api/auth.js");
+  } catch { /* ignore */ }
   clearStoredRefreshToken();
+  persistAuth(null, null);
 });
 
 export const silentRefresh = createAsyncThunk(
@@ -92,6 +116,7 @@ const authSlice = createSlice({
         state.user = action.payload.user;
         state.accessToken = action.payload.access_token;
         state.isLoading = false;
+        persistAuth(action.payload.user, action.payload.access_token);
       })
       .addCase(initAuth.rejected, (state) => {
         state.user = null;
@@ -108,6 +133,7 @@ const authSlice = createSlice({
         state.user = action.payload.user;
         state.accessToken = action.payload.access_token;
         state.error = null;
+        persistAuth(action.payload.user, action.payload.access_token);
       })
       .addCase(login.rejected, (state, action) => {
         state.error = action.payload;
@@ -122,6 +148,7 @@ const authSlice = createSlice({
         state.user = action.payload.user;
         state.accessToken = action.payload.access_token;
         state.error = null;
+        persistAuth(action.payload.user, action.payload.access_token);
       })
       .addCase(verifyOtpAndRegister.rejected, (state, action) => {
         state.error = action.payload;
@@ -140,10 +167,12 @@ const authSlice = createSlice({
       .addCase(silentRefresh.fulfilled, (state, action) => {
         state.user = action.payload.user;
         state.accessToken = action.payload.access_token;
+        persistAuth(action.payload.user, action.payload.access_token);
       })
       .addCase(silentRefresh.rejected, (state) => {
         state.user = null;
         state.accessToken = null;
+        persistAuth(null, null);
       });
   },
 });
