@@ -23,11 +23,32 @@ from app.modules.compliance.router import router as compliance_router
 from app.modules.health.router import router as health_router
 from app.modules.quota.router import router as quota_router
 from app.modules.upload.router import router as upload_router
-from app.modules.transcription.router import router as transcription_router
-from app.modules.scoring.router import router as scoring_router
-from app.modules.feedback.router import router as feedback_router
-from app.modules.practice_generator.router import router as practice_router
-from app.modules.progress.router import router as progress_router
+
+# These may fail if optional deps aren't installed — graceful fallback
+try:
+    from app.modules.transcription.router import router as transcription_router
+except ImportError:
+    transcription_router = None
+try:
+    from app.modules.scoring.router import router as scoring_router
+except ImportError:
+    scoring_router = None
+try:
+    from app.modules.feedback.router import router as feedback_router
+except ImportError:
+    feedback_router = None
+try:
+    from app.modules.practice_generator.router import router as practice_router
+except ImportError:
+    practice_router = None
+try:
+    from app.modules.progress.router import router as progress_router
+except ImportError:
+    progress_router = None
+try:
+    from app.modules.rag.router import router as rag_router
+except ImportError:
+    rag_router = None
 from app.modules.rag.router import router as rag_router
 
 logger = get_logger(__name__)
@@ -64,8 +85,8 @@ def create_app() -> FastAPI:
         title="AI AccentIQ",
         description="Backend API for the AI-powered pronunciation coaching platform.",
         version="0.2.0",
-        docs_url="/docs" if settings.app_env != "production" else None,
-        redoc_url="/redoc" if settings.app_env != "production" else None,
+        docs_url="/docs",
+        redoc_url="/redoc",
         lifespan=lifespan,
     )
 
@@ -88,12 +109,12 @@ def create_app() -> FastAPI:
     app.include_router(quota_router)      # /quota/*
     app.include_router(compliance_router) # /consent/*
     app.include_router(upload_router)     # /recordings/*
-    app.include_router(transcription_router) # /recordings/{id}/status, /recordings/{id}/transcript
-    app.include_router(scoring_router)       # /recordings/{id}/score
-    app.include_router(feedback_router)      # /recordings/{id}/words/{idx}/explain
-    app.include_router(practice_router)      # /practice/*
-    app.include_router(progress_router)      # /progress/*, /recordings/{id}/comparison
-    app.include_router(rag_router)           # /assistant/*
+    if transcription_router: app.include_router(transcription_router)
+    if scoring_router: app.include_router(scoring_router)
+    if feedback_router: app.include_router(feedback_router)
+    if practice_router: app.include_router(practice_router)
+    if progress_router: app.include_router(progress_router)
+    if rag_router: app.include_router(rag_router)
 
     # Future modules (uncomment as phases are implemented):
     # app.include_router(recordings_router, prefix="/recordings")
