@@ -28,8 +28,10 @@ export function DashboardPage() {
         .catch(() => setHasConsent(true)); // on error, don't block
     } else {
       setHasConsent(null); // not relevant for guest users
+      // Re-fetch quota after logout so pill shows correct anon count
+      dispatch(fetchQuota());
     }
-  }, [isAuth]);
+  }, [isAuth, dispatch]);
 
   // For authenticated users: show consent banner if not yet consented
   const showConsentGate = isAuth && hasConsent === false;
