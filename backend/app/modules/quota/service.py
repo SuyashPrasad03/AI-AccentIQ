@@ -25,7 +25,7 @@ logger = get_logger(__name__)
 _REGISTERED_LIMIT = 999_999
 
 
-async def get_quota_status(identity: Identity, db: AsyncSession) -> QuotaStatusResponse:
+async def get_quota_status(identity: Identity, db: AsyncSession, ip_hash: str | None = None) -> QuotaStatusResponse:
     """Return current quota usage for the identity."""
     if identity.is_authenticated:
         return QuotaStatusResponse(
@@ -35,8 +35,9 @@ async def get_quota_status(identity: Identity, db: AsyncSession) -> QuotaStatusR
             remaining=_REGISTERED_LIMIT,
         )
 
-    if identity.anon_session_id is None:
-        # Brand-new anonymous visitor — no record yet, return defaults immediately
+    # Use IP hash as primary lookup (works cross-domain without cookies)
+    lookup_key = identity.anon_session_id or ip_hash
+    if not lookup_key:
         return QuotaStatusResponse(
             used=0,
             limit=settings.anonymous_free_analyses,
@@ -44,10 +45,14 @@ async def get_quota_status(identity: Identity, db: AsyncSession) -> QuotaStatusR
             remaining=settings.anonymous_free_analyses,
         )
 
-    # Look up existing row; if absent, that means zero usage
+    # Look up by either anon_session_id or ip_hash
+    from sqlalchemy import or_
     result = await db.execute(
         select(AnonymousUsage).where(
-            AnonymousUsage.anon_session_id == identity.anon_session_id
+            or_(
+                AnonymousUsage.anon_session_id == lookup_key,
+                AnonymousUsage.ip_hash == ip_hash,
+            )
         )
     )
     usage = result.scalar_one_or_none()
@@ -142,25 +147,32 @@ async def _get_or_create_usage(
     db: AsyncSession,
 ) -> AnonymousUsage:
     """
-    Fetch or create an AnonymousUsage row for this session.
-    Uses a simple SELECT-then-INSERT pattern for MySQL compatibility.
+    Fetch or create an AnonymousUsage row.
+    Uses ip_hash as fallback lookup when anon_session_id isn't available (cross-domain).
     """
-    # Try to find existing
-    result = await db.execute(
-        select(AnonymousUsage).where(
-            AnonymousUsage.anon_session_id == anon_session_id
+    from sqlalchemy import or_
+
+    # Try to find existing by session OR ip_hash
+    conditions = []
+    if anon_session_id:
+        conditions.append(AnonymousUsage.anon_session_id == anon_session_id)
+    if ip_hash:
+        conditions.append(AnonymousUsage.ip_hash == ip_hash)
+
+    if conditions:
+        result = await db.execute(
+            select(AnonymousUsage).where(or_(*conditions))
         )
+        usage = result.scalar_one_or_none()
+        if usage:
+            return usage
+
+    # Create new row
+    usage = AnonymousUsage(
+        anon_session_id=anon_session_id or (ip_hash or "unknown"),
+        ip_hash=ip_hash,
+        analyses_used=0,
     )
-    usage = result.scalar_one_or_none()
-
-    if usage is None:
-        # Create new row
-        usage = AnonymousUsage(
-            anon_session_id=anon_session_id,
-            ip_hash=ip_hash,
-            analyses_used=0,
-        )
-        db.add(usage)
-        await db.flush()
-
+    db.add(usage)
+    await db.flush()
     return usage

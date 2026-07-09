@@ -59,7 +59,10 @@ async def quota_status(
     db: AsyncSession = Depends(get_db),
 ) -> QuotaStatusResponse:
     identity = _ensure_anon_cookie(identity, request, response)
-    return await service.get_quota_status(identity=identity, db=db)
+    ip = request.client.host if request.client else "unknown"
+    ua = request.headers.get("user-agent", "")
+    ip_hash = compute_ip_hash(ip, ua)
+    return await service.get_quota_status(identity=identity, db=db, ip_hash=ip_hash)
 
 
 @router.post(
