@@ -40,7 +40,7 @@ logger = get_logger(__name__)
 _MAX_OTP_ATTEMPTS = 5
 
 
-async def register_user(email: str, db: AsyncSession) -> str:
+async def register_user(email: str, db: AsyncSession, background_tasks=None) -> str:
     """
     Initiate registration: check email not taken, send OTP.
     Returns the email for the response message.
@@ -85,8 +85,11 @@ async def register_user(email: str, db: AsyncSession) -> str:
     otp_rate_limiter.record(email)
     logger.info("otp_sent", email=email, purpose="registration")
 
-    # Send email (console fallback in dev)
-    await send_otp_email(to=email, otp=otp_plain, purpose="registration")
+    # Send email in background (non-blocking) to avoid timeout on platforms like Render
+    if background_tasks:
+        background_tasks.add_task(send_otp_email, to=email, otp=otp_plain, purpose="registration")
+    else:
+        await send_otp_email(to=email, otp=otp_plain, purpose="registration")
 
     return email
 

@@ -9,7 +9,7 @@ Auth router — /auth/* endpoints.
   GET  /auth/me             — return current user (requires auth)
 """
 
-from fastapi import APIRouter, Cookie, Depends, Request, Response
+from fastapi import APIRouter, BackgroundTasks, Cookie, Depends, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import AuthenticationError
@@ -58,9 +58,10 @@ def _clear_refresh_cookie(response: Response) -> None:
 )
 async def register(
     body: RegisterRequest,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
 ) -> RegisterResponse:
-    email = await service.register_user(email=body.email, db=db)
+    email = await service.register_user(email=body.email, db=db, background_tasks=background_tasks)
     return RegisterResponse(
         message="Verification code sent. Please check your email.",
         email=email,
