@@ -37,21 +37,21 @@ export function HighlightedTranscript({ wordScores, onWordClick }) {
           >
             {w.word}
 
-            {tooltip?.index === i && w.detected_issue !== "correct" && (
+            {tooltip?.index === i && (
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 pointer-events-none animate-fade-in">
                 <div className="bg-ink text-white text-[11px] rounded-lg px-3 py-2 shadow-lg whitespace-nowrap max-w-[200px]">
-                  <div className="font-semibold mb-0.5 capitalize">{w.detected_issue}</div>
-                  {w.expected_phonemes?.length > 0 && (
+                  <div className="font-semibold mb-0.5 capitalize">{w.detected_issue === "correct" ? "✓ Correct" : w.detected_issue}</div>
+                  {w.detected_issue !== "correct" && w.expected_phonemes?.length > 0 && (
                     <div className="font-mono text-[10px] opacity-80">
                       Expected: /{w.expected_phonemes.join("")}/
                     </div>
                   )}
-                  {w.substituted_as?.length > 0 && (
+                  {w.detected_issue !== "correct" && w.substituted_as?.length > 0 && (
                     <div className="font-mono text-[10px] opacity-80">
                       Detected: /{w.substituted_as.join("")}/
                     </div>
                   )}
-                  <div className="text-[10px] opacity-70 mt-0.5">Score: {Math.round(w.word_score)}</div>
+                  <div className="text-[10px] opacity-70 mt-0.5">Score: {Math.round(w.word_score)} · Click for details</div>
                   <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-ink rotate-45 -mt-1" />
                 </div>
               </div>

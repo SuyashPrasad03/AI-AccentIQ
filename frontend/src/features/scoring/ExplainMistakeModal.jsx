@@ -6,15 +6,37 @@ export function ExplainMistakeModal({ recordingId, wordIndex, wordData, onClose 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const isCorrect = wordData?.detected_issue === "correct";
+
   useEffect(() => {
     if (recordingId == null || wordIndex == null) return;
+
+    // For correct words, show a positive message without calling the API
+    if (isCorrect) {
+      setExplanation({
+        explanation: `Great job! You pronounced "${wordData.word}" clearly and naturally. The AI recognized it with high confidence.`,
+        mouth_position_tip: "Keep it up! Consistent practice at this level will reinforce your muscle memory for these sounds.",
+        practice_words: [],
+      });
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     explainWord(recordingId, wordIndex)
       .then((data) => { setExplanation(data); setLoading(false); })
       .catch((err) => { setError(err.message); setLoading(false); });
-  }, [recordingId, wordIndex]);
+  }, [recordingId, wordIndex, isCorrect, wordData?.word]);
+
+  const issueLabel = {
+    correct: "Correct",
+    mispronounced: "Mispronounced",
+    unclear: "Unclear",
+    mistimed: "Mistimed",
+  }[wordData?.detected_issue] || wordData?.detected_issue;
 
   const issueStyle = {
+    correct: "pill-blue",
     mispronounced: "pill-danger",
     unclear: "pill-warning",
     mistimed: "pill-primary",
@@ -27,7 +49,8 @@ export function ExplainMistakeModal({ recordingId, wordIndex, wordData, onClose 
 
         <div className="flex items-center gap-3 mb-5">
           <span className="text-2xl font-bold text-ink">{wordData?.word}</span>
-          <span className={`pill ${issueStyle}`}>{wordData?.detected_issue}</span>
+          <span className={`pill ${issueStyle}`}>{issueLabel}</span>
+          <span className="text-xs text-ink-faint ml-auto">Score: {Math.round(wordData?.word_score || 0)}</span>
         </div>
 
         {loading && (
@@ -42,11 +65,15 @@ export function ExplainMistakeModal({ recordingId, wordIndex, wordData, onClose 
         {explanation && !loading && (
           <div className="flex flex-col gap-4">
             <div className="card-soft">
-              <h4 className="text-[11px] uppercase tracking-widest text-ink-muted font-semibold mb-1.5">What happened</h4>
+              <h4 className="text-[11px] uppercase tracking-widest text-ink-muted font-semibold mb-1.5">
+                {isCorrect ? "Analysis" : "What happened"}
+              </h4>
               <p className="text-sm text-ink leading-relaxed">{explanation.explanation}</p>
             </div>
             <div className="card-soft">
-              <h4 className="text-[11px] uppercase tracking-widest text-ink-muted font-semibold mb-1.5">How to fix it</h4>
+              <h4 className="text-[11px] uppercase tracking-widest text-ink-muted font-semibold mb-1.5">
+                {isCorrect ? "Keep going" : "How to fix it"}
+              </h4>
               <p className="text-sm text-ink leading-relaxed">{explanation.mouth_position_tip}</p>
             </div>
             {explanation.practice_words?.length > 0 && (
