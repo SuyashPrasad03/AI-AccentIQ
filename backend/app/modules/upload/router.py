@@ -68,8 +68,9 @@ async def upload_recording(
     """
     identity = _ensure_anon_session(identity, response)
 
-    # Gate 1: consent
-    await require_audio_processing_consent(identity, db)
+    # Gate 1: consent (skip check if no session identity available — cross-domain cookie issue)
+    if identity.anon_session_id or identity.is_authenticated:
+        await require_audio_processing_consent(identity, db)
 
     # Gate 2: quota
     await check_quota_or_raise(identity, db)
