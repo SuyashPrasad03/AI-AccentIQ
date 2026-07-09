@@ -91,11 +91,9 @@ def create_app() -> FastAPI:
     )
 
     # ── CORS ──────────────────────────────────────────────────
-    # Allow all origins for now (deployment debugging)
-    # Lock down to specific origins in production later
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=["https://accentiq.vercel.app", "http://localhost:5173", "http://localhost"],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
