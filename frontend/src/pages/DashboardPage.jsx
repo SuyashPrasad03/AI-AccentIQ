@@ -8,6 +8,7 @@ import { StatusFooterDot } from "../features/system-status/StatusFooterDot.jsx";
 import { PageLoader } from "../components/PageLoader.jsx";
 import { getConsentStatus } from "../api/quota.js";
 import { LiveWordFeedback } from "../features/practice/live-feedback/index.js";
+import { PracticePlan } from "../features/practice/PracticePlan.jsx";
 
 export function DashboardPage() {
   const dispatch = useDispatch();
@@ -54,6 +55,7 @@ export function DashboardPage() {
           <>
             <AudioUploader />
             <LiveWordFeedback />
+            <PracticePlan />
           </>
         )}
       </main>
