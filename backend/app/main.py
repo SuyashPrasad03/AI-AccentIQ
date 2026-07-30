@@ -130,6 +130,10 @@ def create_app() -> FastAPI:
     if progress_router: app.include_router(progress_router)
     if rag_router: app.include_router(rag_router)
 
+    # Phase 30: WebSocket streaming practice endpoint
+    from app.api.ws_practice import router as ws_router
+    app.include_router(ws_router)
+
     # Future modules (uncomment as phases are implemented):
     # app.include_router(recordings_router, prefix="/recordings")
     # app.include_router(practice_router, prefix="/practice")
