@@ -56,6 +56,7 @@ async def explain_mistake(
     substituted_as: list[str],
     gop_raw_data: dict | None = None,
     word_data: dict | None = None,
+    native_language: str | None = None,
 ) -> ExplainResponse:
     """
     Get a human-friendly, evidence-grounded explanation for a pronunciation mistake.
@@ -68,6 +69,7 @@ async def explain_mistake(
         substituted_as: Detected phoneme substitutions
         gop_raw_data: Optional raw GOP data for this word (from MongoDB gop_raw_scores)
         word_data: Optional full word data dict (for error classifier results)
+        native_language: Optional user's native language for L1-adaptive feedback
     """
     # 1. Build cache key
     cache_key = build_cache_key(word, detected_issue, substituted_as)
@@ -98,6 +100,13 @@ async def explain_mistake(
         }
         evidence = build_word_evidence(wd, gop_raw_data)
         evidence_text = format_evidence_for_prompt(evidence)
+
+    # 3b. Add L1 transfer context if user has native language set (Phase 28)
+    if native_language and evidence_text:
+        from app.modules.feedback.l1_transfer_patterns import get_l1_feedback_context
+        l1_context = get_l1_feedback_context(native_language, expected_phonemes, substituted_as)
+        if l1_context:
+            evidence_text += "\n" + l1_context
 
     # 4. Call LLM with evidence-grounded prompt
     system_prompt = SYSTEM_PROMPT if evidence_text else SYSTEM_PROMPT_LEGACY

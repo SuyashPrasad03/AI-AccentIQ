@@ -76,6 +76,11 @@ async def explain_word(
     gop_raw_scores = analysis.get("gop_raw_scores", [])
     gop_raw_data = gop_raw_scores[word_index] if word_index < len(gop_raw_scores) else None
 
+    # Phase 28: Get user's native language for L1-adaptive feedback
+    native_language = None
+    if identity.is_authenticated and identity.user:
+        native_language = getattr(identity.user, "native_language", None)
+
     # 3. Get explanation (cache → LLM with verification → fallback)
     return await service.explain_mistake(
         word=word_text,
@@ -84,4 +89,5 @@ async def explain_word(
         substituted_as=substituted_as,
         gop_raw_data=gop_raw_data,
         word_data=word_data,
+        native_language=native_language,
     )
