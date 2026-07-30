@@ -16,11 +16,35 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/health": {
-        target: process.env.VITE_API_BASE_URL ?? "http://backend:8000",
+        target: process.env.VITE_API_BASE_URL ?? "http://localhost:8000",
         changeOrigin: true,
       },
       "/api": {
-        target: process.env.VITE_API_BASE_URL ?? "http://backend:8000",
+        target: process.env.VITE_API_BASE_URL ?? "http://localhost:8000",
+        changeOrigin: true,
+      },
+      "/recordings": {
+        target: process.env.VITE_API_BASE_URL ?? "http://localhost:8000",
+        changeOrigin: true,
+      },
+      "/auth": {
+        target: process.env.VITE_API_BASE_URL ?? "http://localhost:8000",
+        changeOrigin: true,
+      },
+      "/consent": {
+        target: process.env.VITE_API_BASE_URL ?? "http://localhost:8000",
+        changeOrigin: true,
+      },
+      "/quota": {
+        target: process.env.VITE_API_BASE_URL ?? "http://localhost:8000",
+        changeOrigin: true,
+      },
+      "/assistant": {
+        target: process.env.VITE_API_BASE_URL ?? "http://localhost:8000",
+        changeOrigin: true,
+      },
+      "/progress": {
+        target: process.env.VITE_API_BASE_URL ?? "http://localhost:8000",
         changeOrigin: true,
       },
     },
