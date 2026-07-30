@@ -7,6 +7,7 @@ import { ConsentBanner } from "../features/auth/ConsentBanner.jsx";
 import { StatusFooterDot } from "../features/system-status/StatusFooterDot.jsx";
 import { PageLoader } from "../components/PageLoader.jsx";
 import { getConsentStatus } from "../api/quota.js";
+import { LiveWordFeedback } from "../features/practice/live-feedback/index.js";
 
 export function DashboardPage() {
   const dispatch = useDispatch();
@@ -50,7 +51,10 @@ export function DashboardPage() {
             <ConsentBanner onConsented={() => setHasConsent(true)} />
           </div>
         ) : (
-          <AudioUploader />
+          <>
+            <AudioUploader />
+            <LiveWordFeedback />
+          </>
         )}
       </main>
 
