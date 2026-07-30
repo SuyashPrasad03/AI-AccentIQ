@@ -95,6 +95,9 @@ def compute_gop_scores(
         end_time = word_info.get("end", 0.0)
         confidence = word_info.get("confidence", 0.0)
 
+        # Pre-process: merge length marks with preceding vowels for vocab lookup
+        expected_phonemes = _merge_length_marks(expected_phonemes, vocab)
+
         # Convert timestamps to frame indices
         start_frame = int(start_time * FRAMES_PER_SECOND)
         end_frame = int(end_time * FRAMES_PER_SECOND)
@@ -142,16 +145,41 @@ def compute_gop_scores(
 
             # Compute GOP: average log-posterior for the expected phoneme
             phoneme_id = _resolve_phoneme_id(phoneme, vocab)
-            if phoneme_id is not None:
-                gop_score = float(np.mean(segment_log_probs[:, phoneme_id]))
-            else:
-                # Phoneme not in model vocabulary — use the max as fallback
-                gop_score = float(np.mean(np.max(segment_log_probs, axis=1)))
 
-            # Find the best (max posterior) phoneme at these frames
+            # Identify the blank/pad token (CTC blank is typically index 0)
+            pad_id = vocab.get("<pad>", 0)
+
+            if phoneme_id is not None:
+                # Filter out blank-dominant frames for a more meaningful GOP score
+                # CTC models produce blanks between phonemes — these frames
+                # shouldn't count against pronunciation quality
+                phoneme_log_probs = segment_log_probs[:, phoneme_id]
+                blank_log_probs = segment_log_probs[:, pad_id]
+
+                # Use frames where the expected phoneme has reasonable probability
+                # OR where blank is not overwhelmingly dominant
+                non_blank_mask = blank_log_probs < -0.5  # blank isn't > 60% likely
+                if np.any(non_blank_mask):
+                    gop_score = float(np.mean(phoneme_log_probs[non_blank_mask]))
+                else:
+                    # All frames are blank-dominant — use the best frame for this phoneme
+                    gop_score = float(np.max(phoneme_log_probs))
+            else:
+                # Phoneme not in model vocabulary — use the max non-blank as fallback
+                # Zero out blank column to find best real phoneme
+                adjusted = segment_log_probs.copy()
+                adjusted[:, pad_id] = -100.0
+                gop_score = float(np.mean(np.max(adjusted, axis=1)))
+
+            # Find the best (max posterior) NON-BLANK phoneme at these frames
             mean_log_probs = np.mean(segment_log_probs, axis=0)  # (vocab_size,)
-            max_id = int(np.argmax(mean_log_probs))
-            max_score = float(mean_log_probs[max_id])
+            # Exclude special tokens from max search
+            adjusted_mean = mean_log_probs.copy()
+            for special_token in ("<pad>", "<s>", "</s>", "<unk>"):
+                if special_token in vocab:
+                    adjusted_mean[vocab[special_token]] = -100.0
+            max_id = int(np.argmax(adjusted_mean))
+            max_score = float(adjusted_mean[max_id])
 
             # Resolve max phoneme name
             from app.modules.scoring.phoneme_recognizer import get_id_to_phoneme_map
@@ -187,6 +215,46 @@ def compute_gop_scores(
     return results
 
 
+def _merge_length_marks(phonemes: list[str], vocab: dict[str, int]) -> list[str]:
+    """
+    Merge standalone length marks (ː) with the preceding phoneme.
+
+    Phonemizer often splits 'aː' into ['a', 'ː'], but the wav2vec2 model
+    vocabulary has composite tokens like 'aː', 'iː', 'uː' etc.
+    This merges them back so we get valid vocabulary lookups.
+    """
+    if not phonemes:
+        return phonemes
+
+    merged = []
+    i = 0
+    while i < len(phonemes):
+        current = phonemes[i]
+
+        # If current is a length mark and we have a preceding phoneme, merge
+        if current == "ː" and merged:
+            combined = merged[-1] + "ː"
+            # Check if the combined form exists in vocab
+            if combined in vocab:
+                merged[-1] = combined
+            # Otherwise just skip the length mark (it adds no scoring value)
+            i += 1
+            continue
+
+        # If next is a length mark, try merging proactively
+        if i + 1 < len(phonemes) and phonemes[i + 1] == "ː":
+            combined = current + "ː"
+            if combined in vocab:
+                merged.append(combined)
+                i += 2
+                continue
+
+        merged.append(current)
+        i += 1
+
+    return merged
+
+
 def _resolve_phoneme_id(phoneme: str, vocab: dict[str, int]) -> int | None:
     """
     Try to find the phoneme in the model vocabulary.
@@ -197,16 +265,26 @@ def _resolve_phoneme_id(phoneme: str, vocab: dict[str, int]) -> int | None:
     if phoneme in vocab:
         return vocab[phoneme]
 
-    # Try with/without length marks
+    # Try common variants
     variants = [
         phoneme.rstrip("ː"),  # remove length mark
         phoneme + "ː",  # add length mark
         phoneme.replace("ɡ", "g"),  # IPA g vs ASCII g
         phoneme.replace("g", "ɡ"),
+        phoneme.replace("ɹ", "r"),  # r variants
+        phoneme.replace("r", "ɹ"),
+        phoneme.replace("ɚ", "ə"),  # rhotacized schwa → schwa
+        phoneme.replace("ɝ", "ɜ"),  # rhotacized open-mid → plain
+        phoneme.lower(),  # case insensitivity
     ]
 
     for v in variants:
         if v in vocab:
             return vocab[v]
+
+    # Try single-char version of multi-char phonemes
+    if len(phoneme) > 1:
+        if phoneme[0] in vocab:
+            return vocab[phoneme[0]]
 
     return None

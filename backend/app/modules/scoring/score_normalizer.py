@@ -26,18 +26,17 @@ from app.core.logging import get_logger
 logger = get_logger(__name__)
 
 # ── Calibration bounds (refined from Phase 26 evaluation data) ────────────────
-# Measured from 18 real user recordings:
-#   Word-level GOP range: min=-12.67, max=-2.82, mean=-8.11
-#   p10=-10.75 (poor), p90=-5.14 (good)
-#   Phoneme-level: min=-17.93, max=0.0, mean=-8.44
+# Measured from 18 real user recordings (post blank-frame fix):
+#   Word-level GOP range: typical -3 to -10 for clear English speech
+#   Native-like pronunciation: GOP around -3 to -5
+#   Clear non-native: GOP around -5 to -8
+#   Mispronounced: GOP around -8 to -12+
 #
-# GOP_CEILING: typical "good" pronunciation (maps to score 100)
-#   Based on p90 of observed word-level GOPs with margin
-GOP_CEILING = -3.0  # Maps to score 100
+# GOP_CEILING: "good" pronunciation threshold (maps to score 100)
+GOP_CEILING = -4.0  # Maps to score 100
 
-# GOP_FLOOR: typical "poor" pronunciation (maps to score 0)
-#   Based on p10 with margin for very poor speakers
-GOP_FLOOR = -12.0  # Maps to score 0
+# GOP_FLOOR: "poor" pronunciation threshold (maps to score 0)
+GOP_FLOOR = -11.0  # Maps to score 0
 
 # ── Word-level gap thresholds ─────────────────────────────────────────────────
 # The "gap" (max_posterior - expected_phoneme_posterior) indicates error severity
