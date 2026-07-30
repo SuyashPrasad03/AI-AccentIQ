@@ -39,6 +39,8 @@ async def store_explanation(
     mouth_position_tip: str,
     practice_words: list[str],
     model_version: str,
+    confidence_level: str | None = None,
+    evidence_refs: list[str] | None = None,
 ) -> None:
     """Write-through cache: store an explanation after LLM generation."""
     db = get_mongo_db()
@@ -50,6 +52,12 @@ async def store_explanation(
         "model_version": model_version,
         "created_at": datetime.now(UTC),
     }
+    # Phase 27 fields
+    if confidence_level:
+        doc["confidence_level"] = confidence_level
+    if evidence_refs:
+        doc["evidence_refs"] = evidence_refs
+
     await db[COLLECTION].replace_one(
         {"cache_key": cache_key}, doc, upsert=True
     )
