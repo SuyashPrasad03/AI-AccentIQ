@@ -231,3 +231,48 @@ async def reset_password(
 )
 async def get_me(current_user: User = Depends(get_current_user)) -> UserOut:
     return UserOut.model_validate(current_user)
+
+
+@router.patch(
+    "/me/profile",
+    response_model=UserOut,
+    summary="Update user profile (e.g., native language)",
+)
+async def update_profile(
+    body: dict,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> UserOut:
+    """
+    Update optional profile fields. Currently supports:
+      - native_language: user's native language for L1-adaptive feedback (optional)
+
+    Phase 28: Setting native_language enables personalized feedback that explains
+    WHY certain pronunciation patterns occur based on L1 interference.
+    """
+    from sqlalchemy import update
+    from app.modules.auth.models import User as UserModel
+    from app.modules.feedback.l1_transfer_patterns import SUPPORTED_LANGUAGES
+
+    updates = {}
+
+    if "native_language" in body:
+        native_lang = body["native_language"]
+        if native_lang is not None:
+            native_lang = str(native_lang).strip().lower()
+            if native_lang and native_lang not in SUPPORTED_LANGUAGES:
+                # Still accept it — we just won't have L1 patterns for it
+                pass
+        updates["native_language"] = native_lang if native_lang else None
+
+    if updates:
+        await db.execute(
+            update(UserModel)
+            .where(UserModel.id == current_user.id)
+            .values(**updates)
+        )
+        await db.commit()
+        # Refresh the user object
+        await db.refresh(current_user)
+
+    return UserOut.model_validate(current_user)

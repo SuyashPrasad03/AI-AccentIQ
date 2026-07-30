@@ -74,6 +74,7 @@ class UserOut(BaseModel):
     id: str
     email: str
     email_verified_at: datetime | None
+    native_language: str | None = None  # Phase 28: for L1-adaptive feedback
     created_at: datetime
 
     model_config = {"from_attributes": True}
