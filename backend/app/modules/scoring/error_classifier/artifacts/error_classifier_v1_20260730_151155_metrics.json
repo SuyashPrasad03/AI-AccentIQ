@@ -1,0 +1,75 @@
+{
+  "test_accuracy": 1.0,
+  "train_accuracy": 1.0,
+  "overfit_gap": 0.0,
+  "classification_report": {
+    "correct": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 99.0
+    },
+    "substitution": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 375.0
+    },
+    "deletion": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 1.0
+    },
+    "distortion": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 57.0
+    },
+    "accuracy": 1.0,
+    "macro avg": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 532.0
+    },
+    "weighted avg": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 532.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      99,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      375,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      57
+    ]
+  ],
+  "best_iteration": 200,
+  "num_features": 9,
+  "train_size": 2479,
+  "val_size": 530,
+  "test_size": 532
+}
