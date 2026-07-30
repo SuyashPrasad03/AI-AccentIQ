@@ -134,6 +134,10 @@ def create_app() -> FastAPI:
     from app.api.ws_practice import router as ws_router
     app.include_router(ws_router)
 
+    # Phase 32: Admin observability dashboard API
+    from app.modules.observability.router import router as observability_router
+    app.include_router(observability_router)
+
     # Future modules (uncomment as phases are implemented):
     # app.include_router(recordings_router, prefix="/recordings")
     # app.include_router(practice_router, prefix="/practice")

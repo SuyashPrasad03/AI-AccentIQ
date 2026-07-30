@@ -89,7 +89,9 @@ async def run_scoring_job(recording_id: str) -> None:
 
             # Try GOP if enabled and audio is available
             if audio_path and Path(audio_path).exists():
-                gop_result = _run_gop_scoring(audio_path, words_data, total_duration)
+                from app.modules.observability.pipeline_metrics import track_stage
+                async with track_stage("gop_scoring", {"recording_id": recording_id}):
+                    gop_result = _run_gop_scoring(audio_path, words_data, total_duration)
 
             # 5. Determine which result to store
             if active_engine == "gop" and gop_result is not None:
