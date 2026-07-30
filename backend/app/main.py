@@ -68,6 +68,20 @@ async def lifespan(app: FastAPI):
     from app.modules.rag.ingest import ensure_kb_indexed
     await ensure_kb_indexed()
 
+    # Phase 24: Pre-load the wav2vec2-CTC phoneme model if GOP engine is active
+    if settings.scoring_engine == "gop":
+        try:
+            from app.modules.scoring.phoneme_recognizer import _ensure_model_loaded
+            logger.info("gop_model_warmup_start")
+            _ensure_model_loaded()
+            logger.info("gop_model_warmup_done")
+        except Exception as exc:
+            logger.warning(
+                "gop_model_warmup_failed",
+                error=str(exc),
+                fallback="legacy scoring will be used",
+            )
+
     yield  # Application is running
 
     # Graceful shutdown

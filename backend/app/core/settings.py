@@ -82,6 +82,11 @@ class Settings(BaseSettings):
     whisperx_device: str = "cpu"
     hf_token: str = ""
 
+    # ── Scoring Engine (Phase 24) ─────────────────────────────
+    # "gop" = GOP-based acoustic scoring (wav2vec2-CTC posteriors)
+    # "legacy" = original confidence-proxy + phoneme diff scoring
+    scoring_engine: Literal["gop", "legacy"] = "gop"
+
     # ── OpenRouter / Gemini ───────────────────────────────────
     openrouter_api_key: str = ""
     openrouter_model: str = "google/gemini-flash-1.5"
