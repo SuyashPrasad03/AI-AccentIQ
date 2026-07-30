@@ -6,6 +6,7 @@ import { Navbar } from "./components/Navbar.jsx";
 import { LandingPage } from "./pages/LandingPage.jsx";
 import { DashboardPage } from "./pages/DashboardPage.jsx";
 import { AssistantWidget } from "./features/rag-assistant/AssistantWidget.jsx";
+import { AdminDashboard } from "./features/admin-dashboard/AdminDashboard.jsx";
 import "./App.css";
 
 export default function App() {
@@ -27,6 +28,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/app" element={<DashboardPage />} />
+          <Route path="/admin" element={<AdminDashboard />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <AssistantWidget />
