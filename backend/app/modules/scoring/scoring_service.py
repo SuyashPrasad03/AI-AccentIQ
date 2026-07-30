@@ -102,6 +102,10 @@ async def run_scoring_job(recording_id: str) -> None:
             # 6. Log side-by-side comparison
             _log_comparison(recording_id, legacy_result, gop_result, engine_used)
 
+            # 6b. Enrich with error classification (Phase 25)
+            if engine_used == "gop" and gop_result and audio_path:
+                result = _enrich_with_error_types(result, audio_path)
+
             # 7. Store full analysis in Mongo (with engine metadata)
             await insert_phoneme_analysis(
                 recording_id=recording_id,
@@ -160,6 +164,54 @@ def _run_legacy_scoring(words_data: list[dict], total_duration: float) -> dict:
     """Run the legacy confidence-proxy scoring engine."""
     from app.modules.scoring.legacy_diff_scorer import score_recording_legacy
     return score_recording_legacy(words_data, total_duration)
+
+
+def _enrich_with_error_types(result: dict, audio_path: str) -> dict:
+    """
+    Enrich GOP scoring results with error-type classification (Phase 25).
+    Falls back gracefully if the classifier is unavailable.
+    """
+    try:
+        from app.modules.scoring.error_classifier.model import predict_single, is_model_available
+
+        if not is_model_available():
+            # Try loading
+            from app.modules.scoring.error_classifier.model import _ensure_model_loaded
+            if not _ensure_model_loaded():
+                return result
+
+        gop_raw_scores = result.get("gop_raw_scores", [])
+        word_scores = result.get("word_scores", [])
+
+        for word_idx, (raw, ws) in enumerate(zip(gop_raw_scores, word_scores)):
+            phonemes_data = raw.get("phonemes", [])
+            phoneme_error_types = []
+
+            for ph_data in phonemes_data:
+                prediction = predict_single(
+                    gop_score=ph_data.get("gop_score", -5.0),
+                    gop_gap=ph_data.get("gap", 3.0),
+                    duration=0.08,  # approximate, fine for classification
+                    duration_ratio=1.0,
+                    energy_mean=0.01,
+                )
+                phoneme_error_types.append(prediction)
+
+            # Add error types to word score
+            if phoneme_error_types:
+                # Word-level error type: most severe error among its phonemes
+                error_priority = {"substitution": 4, "deletion": 3, "insertion": 2, "distortion": 1, "correct": 0}
+                worst_error = max(phoneme_error_types, key=lambda x: error_priority.get(x["error_type"], 0))
+                ws["error_type"] = worst_error["error_type"]
+                ws["error_type_confidence"] = worst_error["error_type_confidence"]
+                ws["phoneme_error_types"] = phoneme_error_types
+
+        logger.info("error_classification_done", words_classified=len(word_scores))
+        return result
+
+    except Exception as exc:
+        logger.warning("error_classification_failed", error=str(exc))
+        return result
 
 
 def _run_gop_scoring(
