@@ -1,0 +1,225 @@
+[
+  {
+    "id": "phoneme_θ",
+    "phoneme": "θ",
+    "name": "voiceless dental fricative",
+    "common_spelling": "th (as in 'think', 'three', 'bath')",
+    "articulation": {
+      "tongue_position": "Tongue tip placed between upper and lower front teeth, or against the back of the upper teeth",
+      "airflow": "Continuous airflow forced between tongue and teeth, creating friction",
+      "voicing": "Voiceless — vocal cords do not vibrate",
+      "lip_position": "Lips slightly open, not rounded"
+    },
+    "common_errors": [
+      {"substitution": "t", "l1_backgrounds": ["hindi", "french", "german"], "explanation": "Speakers produce a dental/alveolar stop instead of a fricative — tongue blocks air rather than allowing continuous flow"},
+      {"substitution": "s", "l1_backgrounds": ["mandarin", "japanese", "korean"], "explanation": "Speakers use the closest fricative in their L1 — the tongue stays behind the teeth instead of between them"},
+      {"substitution": "f", "l1_backgrounds": ["some dialects"], "explanation": "Labiodental fricative substituted — lower lip touches upper teeth instead of tongue between teeth"}
+    ],
+    "minimal_pairs": ["think/sink", "thick/sick", "math/mass", "three/free", "bath/bass"],
+    "practice_words": ["think", "three", "through", "thought", "method", "both", "math", "fifth"],
+    "practice_sentences": [
+      "I think the three brothers went through the thick forest.",
+      "Both math problems have something in common."
+    ]
+  },
+  {
+    "id": "phoneme_ð",
+    "phoneme": "ð",
+    "name": "voiced dental fricative",
+    "common_spelling": "th (as in 'this', 'the', 'mother')",
+    "articulation": {
+      "tongue_position": "Same as /θ/ — tongue tip between or against upper teeth",
+      "airflow": "Continuous airflow with friction, same as /θ/",
+      "voicing": "Voiced — vocal cords vibrate (place hand on throat to feel)",
+      "lip_position": "Lips slightly open"
+    },
+    "common_errors": [
+      {"substitution": "d", "l1_backgrounds": ["hindi", "french", "german", "japanese"], "explanation": "Voiced stop replaces voiced fricative — tongue completely blocks air instead of allowing friction"},
+      {"substitution": "z", "l1_backgrounds": ["mandarin", "arabic"], "explanation": "Voiced alveolar fricative — correct voicing but wrong tongue position"}
+    ],
+    "minimal_pairs": ["then/den", "they/day", "breathe/breed", "father/fodder"],
+    "practice_words": ["the", "this", "that", "there", "mother", "father", "weather", "breathe"],
+    "practice_sentences": [
+      "The mother and father gathered together in the weather.",
+      "This and that are over there with the others."
+    ]
+  },
+  {
+    "id": "phoneme_r",
+    "phoneme": "ɹ",
+    "name": "alveolar approximant (English R)",
+    "common_spelling": "r (as in 'red', 'run', 'car')",
+    "articulation": {
+      "tongue_position": "Tongue tip curled back (retroflex) or bunched in the middle of the mouth, NOT touching the roof",
+      "airflow": "Air flows smoothly around the tongue without friction",
+      "voicing": "Voiced — vocal cords vibrate",
+      "lip_position": "Lips slightly rounded"
+    },
+    "common_errors": [
+      {"substitution": "l", "l1_backgrounds": ["japanese", "mandarin", "korean"], "explanation": "L1 has a single liquid phoneme between English /r/ and /l/ — the key distinction is whether tongue TOUCHES (l) or DOESN'T TOUCH (r) the alveolar ridge"},
+      {"substitution": "w", "l1_backgrounds": ["some_cantonese"], "explanation": "Lip rounding without tongue curling"},
+      {"substitution": "ʁ", "l1_backgrounds": ["french", "german"], "explanation": "Uvular fricative from L1 — produced too far back in the throat"}
+    ],
+    "minimal_pairs": ["red/led", "right/light", "race/lace", "grow/glow", "pray/play", "crowd/cloud"],
+    "practice_words": ["red", "run", "right", "road", "tree", "green", "great", "car", "far"],
+    "practice_sentences": [
+      "The red car drove right around the corner.",
+      "Three great trees grew near the river."
+    ]
+  },
+  {
+    "id": "phoneme_l",
+    "phoneme": "l",
+    "name": "alveolar lateral approximant",
+    "common_spelling": "l (as in 'let', 'tell', 'feel')",
+    "articulation": {
+      "tongue_position": "Tongue tip touches the alveolar ridge (bump behind upper front teeth). Air flows around the SIDES of the tongue.",
+      "airflow": "Lateral — air escapes around the sides of the tongue",
+      "voicing": "Voiced",
+      "lip_position": "Neutral, unrounded"
+    },
+    "common_errors": [
+      {"substitution": "r", "l1_backgrounds": ["japanese", "korean"], "explanation": "L1 liquid sound is between /r/ and /l/ — for English /l/, the tongue tip MUST touch the ridge"},
+      {"substitution": "n", "l1_backgrounds": ["some_mandarin_dialects"], "explanation": "Both are alveolar — the difference is /n/ sends air through the nose, /l/ sends air around tongue sides"}
+    ],
+    "minimal_pairs": ["light/right", "lead/read", "lice/rice", "lane/rain", "late/rate"],
+    "practice_words": ["light", "let", "like", "long", "feel", "tell", "pull", "little"],
+    "practice_sentences": [
+      "Let me tell you a little story about the long lake.",
+      "Please pull the light blue lever on the left."
+    ]
+  },
+  {
+    "id": "phoneme_v",
+    "phoneme": "v",
+    "name": "voiced labiodental fricative",
+    "common_spelling": "v (as in 'very', 'have', 'voice')",
+    "articulation": {
+      "tongue_position": "Tongue is not involved — this is a LIP sound",
+      "airflow": "Upper teeth lightly touch the inner part of the lower lip, air is forced through creating friction",
+      "voicing": "Voiced — vocal cords vibrate",
+      "lip_position": "Lower lip pulled slightly inward to touch upper teeth"
+    },
+    "common_errors": [
+      {"substitution": "w", "l1_backgrounds": ["hindi", "some_indian_english"], "explanation": "Hindi /v/ is a labiodental approximant (no teeth contact) — English /v/ requires teeth-on-lip friction"},
+      {"substitution": "b", "l1_backgrounds": ["spanish", "japanese", "arabic"], "explanation": "Bilabial stop — both lips come together instead of teeth touching lip"},
+      {"substitution": "f", "l1_backgrounds": ["arabic", "some_german"], "explanation": "Same lip position but voiceless — only difference is vocal cord vibration"}
+    ],
+    "minimal_pairs": ["van/ban", "vet/bet", "vine/wine", "very/berry", "vest/best", "vat/bat"],
+    "practice_words": ["very", "voice", "have", "over", "seven", "ever", "live", "give"],
+    "practice_sentences": [
+      "I have a very vivid view of the valley.",
+      "Every evening, seven doves visit the village."
+    ]
+  },
+  {
+    "id": "phoneme_ŋ",
+    "phoneme": "ŋ",
+    "name": "velar nasal",
+    "common_spelling": "ng (as in 'sing', 'ring', 'long')",
+    "articulation": {
+      "tongue_position": "Back of tongue presses against the soft palate (velum) — same position as /k/ or /g/",
+      "airflow": "Air flows through the NOSE (not the mouth) — the mouth is blocked",
+      "voicing": "Voiced",
+      "lip_position": "Slightly open"
+    },
+    "common_errors": [
+      {"substitution": "n", "l1_backgrounds": ["mandarin_southern", "some_spanish"], "explanation": "Alveolar nasal instead of velar — tongue touches the front ridge instead of the back of the mouth"},
+      {"substitution": "ŋɡ", "l1_backgrounds": ["some_learners"], "explanation": "Adding a hard /g/ after the nasal — 'sing' becomes 'sing-g'. The /ŋ/ should end without a stop."}
+    ],
+    "minimal_pairs": ["sin/sing", "thin/thing", "ran/rang", "ban/bang", "kin/king"],
+    "practice_words": ["sing", "ring", "long", "song", "morning", "evening", "nothing", "something"],
+    "practice_sentences": [
+      "I was singing a song in the morning.",
+      "Something interesting is happening this evening."
+    ]
+  },
+  {
+    "id": "phoneme_æ",
+    "phoneme": "æ",
+    "name": "near-open front unrounded vowel",
+    "common_spelling": "a (as in 'cat', 'bat', 'man')",
+    "articulation": {
+      "tongue_position": "Tongue low and pushed forward in the mouth",
+      "airflow": "Open vowel — no constriction, air flows freely",
+      "voicing": "Voiced",
+      "lip_position": "Spread (corners pulled back slightly), mouth open wider than for /ɛ/"
+    },
+    "common_errors": [
+      {"substitution": "ɛ", "l1_backgrounds": ["many_l2_speakers"], "explanation": "Not opening the mouth wide enough — /æ/ requires more jaw opening than /ɛ/ (as in 'bed')"},
+      {"substitution": "ɑ", "l1_backgrounds": ["arabic", "some_spanish"], "explanation": "Too far back — /æ/ is a FRONT vowel, tongue should be forward"}
+    ],
+    "minimal_pairs": ["bat/bet", "man/men", "bad/bed", "cat/cut", "hat/hot", "pan/pen"],
+    "practice_words": ["cat", "hat", "man", "bad", "happy", "family", "travel", "chapter"],
+    "practice_sentences": [
+      "The happy cat sat on the man's hat.",
+      "The family traveled to a fantastic land."
+    ]
+  },
+  {
+    "id": "phoneme_ʃ",
+    "phoneme": "ʃ",
+    "name": "voiceless postalveolar fricative",
+    "common_spelling": "sh (as in 'she', 'ship', 'fish')",
+    "articulation": {
+      "tongue_position": "Tongue blade raised toward the area just behind the alveolar ridge (postalveolar)",
+      "airflow": "Continuous friction — air is channeled into a groove along the center of the tongue",
+      "voicing": "Voiceless",
+      "lip_position": "Slightly rounded (pursed forward)"
+    },
+    "common_errors": [
+      {"substitution": "s", "l1_backgrounds": ["some_spanish", "some_greek"], "explanation": "Alveolar fricative — tongue too far forward and lips not rounded enough"},
+      {"substitution": "tʃ", "l1_backgrounds": ["some_learners"], "explanation": "Adding a stop before the fricative — should be continuous friction, not a burst"}
+    ],
+    "minimal_pairs": ["ship/chip", "she/see", "shore/sore", "share/chair", "wash/watch"],
+    "practice_words": ["she", "ship", "shop", "fish", "push", "English", "machine", "nation"],
+    "practice_sentences": [
+      "She went to the shop to buy a fresh fish.",
+      "The English machine was shipped to the nation."
+    ]
+  },
+  {
+    "id": "phoneme_dʒ",
+    "phoneme": "dʒ",
+    "name": "voiced postalveolar affricate",
+    "common_spelling": "j, g (as in 'judge', 'age', 'gem')",
+    "articulation": {
+      "tongue_position": "Tongue starts pressed against the postalveolar ridge (like /d/), then releases into /ʒ/ friction",
+      "airflow": "Starts as a stop (blocked), then releases into a fricative (friction) — a combination sound",
+      "voicing": "Voiced throughout",
+      "lip_position": "Slightly rounded"
+    },
+    "common_errors": [
+      {"substitution": "ʒ", "l1_backgrounds": ["french"], "explanation": "Fricative only, missing the initial stop — French 'j' is just /ʒ/, English 'j' starts with tongue pressed up"},
+      {"substitution": "j", "l1_backgrounds": ["spanish"], "explanation": "Palatal approximant — too soft, missing the stop and friction components"}
+    ],
+    "minimal_pairs": ["jet/yet", "juice/use", "joke/yoke", "jaw/your"],
+    "practice_words": ["judge", "job", "age", "edge", "large", "page", "gentle", "magic"],
+    "practice_sentences": [
+      "The judge made a large gesture from the edge of the stage.",
+      "Just imagine a magic journey to a gentle jungle."
+    ]
+  },
+  {
+    "id": "consonant_clusters",
+    "phoneme": "clusters",
+    "name": "Consonant Clusters in English",
+    "common_spelling": "str, spl, nts, sts, ths, etc.",
+    "articulation": {
+      "tongue_position": "Varies — each consonant in the cluster must be articulated individually without inserting vowels between them",
+      "airflow": "Transitions smoothly between consonants without pausing or adding sounds",
+      "voicing": "Varies per consonant in the cluster",
+      "lip_position": "Transitions smoothly between positions"
+    },
+    "common_errors": [
+      {"substitution": "vowel_insertion", "l1_backgrounds": ["japanese", "spanish", "hindi", "mandarin"], "explanation": "Many languages don't allow complex consonant clusters. Speakers insert a short vowel (epenthesis): 'street' → 'sitareet', 'speak' → 'espeak'"},
+      {"substitution": "cluster_simplification", "l1_backgrounds": ["mandarin", "cantonese", "thai"], "explanation": "Dropping one consonant from the cluster: 'strengths' → 'strengs', 'texts' → 'texs'"}
+    ],
+    "minimal_pairs": ["stream/steam", "string/sing", "split/spit"],
+    "practice_words": ["street", "strong", "splash", "spring", "texts", "strengths", "fifths", "months"],
+    "practice_sentences": [
+      "The strong stream splashed against the spring rocks.",
+      "She read three texts about the strengths of the structure."
+    ]
+  }
+]
