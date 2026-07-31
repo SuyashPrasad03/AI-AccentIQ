@@ -15,4 +15,5 @@ class ExplainResponse(BaseModel):
     explanation: str
     mouth_position_tip: str
     practice_words: list[str] = Field(default_factory=list)
+    confidence_level: str = "Medium"  # High|Medium|Low (Phase 27)
     from_cache: bool = False

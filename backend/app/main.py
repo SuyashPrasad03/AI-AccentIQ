@@ -68,6 +68,20 @@ async def lifespan(app: FastAPI):
     from app.modules.rag.ingest import ensure_kb_indexed
     await ensure_kb_indexed()
 
+    # Phase 24: Pre-load the wav2vec2-CTC phoneme model if GOP engine is active
+    if settings.scoring_engine == "gop":
+        try:
+            from app.modules.scoring.phoneme_recognizer import _ensure_model_loaded
+            logger.info("gop_model_warmup_start")
+            _ensure_model_loaded()
+            logger.info("gop_model_warmup_done")
+        except Exception as exc:
+            logger.warning(
+                "gop_model_warmup_failed",
+                error=str(exc),
+                fallback="legacy scoring will be used",
+            )
+
     yield  # Application is running
 
     # Graceful shutdown
@@ -115,6 +129,14 @@ def create_app() -> FastAPI:
     if practice_router: app.include_router(practice_router)
     if progress_router: app.include_router(progress_router)
     if rag_router: app.include_router(rag_router)
+
+    # Phase 30: WebSocket streaming practice endpoint
+    from app.api.ws_practice import router as ws_router
+    app.include_router(ws_router)
+
+    # Phase 32: Admin observability dashboard API
+    from app.modules.observability.router import router as observability_router
+    app.include_router(observability_router)
 
     # Future modules (uncomment as phases are implemented):
     # app.include_router(recordings_router, prefix="/recordings")

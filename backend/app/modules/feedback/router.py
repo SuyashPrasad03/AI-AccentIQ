@@ -72,10 +72,22 @@ async def explain_word(
     expected_phonemes = word_data.get("expected_phonemes", [])
     substituted_as = word_data.get("substituted_as", [])
 
-    # 3. Get explanation (cache → LLM → fallback)
+    # Phase 27: Get GOP raw data for evidence-grounded feedback
+    gop_raw_scores = analysis.get("gop_raw_scores", [])
+    gop_raw_data = gop_raw_scores[word_index] if word_index < len(gop_raw_scores) else None
+
+    # Phase 28: Get user's native language for L1-adaptive feedback
+    native_language = None
+    if identity.is_authenticated and identity.user:
+        native_language = getattr(identity.user, "native_language", None)
+
+    # 3. Get explanation (cache → LLM with verification → fallback)
     return await service.explain_mistake(
         word=word_text,
         detected_issue=detected_issue,
         expected_phonemes=expected_phonemes,
         substituted_as=substituted_as,
+        gop_raw_data=gop_raw_data,
+        word_data=word_data,
+        native_language=native_language,
     )

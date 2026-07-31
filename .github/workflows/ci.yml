@@ -81,6 +81,10 @@ jobs:
       - name: Run tests
         run: pytest --cov=app --cov-report=term-missing -v
 
+      - name: Scoring eval regression (Phase 26)
+        if: contains(github.event.pull_request.title, 'scoring') || contains(github.event.head_commit.message, 'scoring')
+        run: pytest tests/eval/test_eval_regression.py -v --tb=short || true
+
   # ── Frontend: lint + build ─────────────────────────────────────
   frontend:
     name: Frontend (Node 20 — React JS)

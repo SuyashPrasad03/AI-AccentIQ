@@ -67,3 +67,67 @@ async def regenerate(
     """
     identity = _ensure_anon(identity, response)
     return await service.regenerate_practice(identity)
+
+
+# ── Phase 31: Practice Plan (Agentic Planner) ────────────────────────────────
+
+@router.get(
+    "/plan",
+    summary="Get the active practice plan (multi-day, adaptive)",
+)
+async def get_plan(
+    identity: Identity = Depends(get_current_identity),
+) -> dict:
+    """
+    Phase 31: Returns the user's active multi-day practice plan.
+    The plan is generated from cross-session error history and adapts
+    when new recording data arrives.
+    """
+    from app.modules.practice_generator.practice_planner_agent import get_active_plan
+
+    user_id = identity.user_id if identity.is_authenticated else None
+    plan = await get_active_plan(user_id)
+
+    if plan:
+        # Remove MongoDB _id field for serialization
+        plan.pop("_id", None)
+        return {"plan": plan, "has_plan": True}
+
+    return {"plan": None, "has_plan": False, "message": "No active plan. Generate one to get started."}
+
+
+@router.post(
+    "/plan/generate",
+    summary="Generate a new adaptive practice plan",
+)
+async def generate_plan(
+    response: Response,
+    identity: Identity = Depends(get_current_identity),
+) -> dict:
+    """
+    Phase 31: Generate a structured N-day practice plan based on the user's
+    full error history. Supersedes any existing active plan.
+
+    The plan:
+    - Targets top 3 priority phonemes (by frequency × severity)
+    - Structures practice across 7 days with progressive difficulty
+    - Includes checkpoints every 3 days for re-assessment
+    - Uses only sentences from the curated bank (deterministic, reviewable)
+    - Adapts on re-generation based on new session data
+    """
+    from app.modules.practice_generator.practice_planner_agent import generate_practice_plan
+
+    identity = _ensure_anon(identity, response)
+    user_id = identity.user_id if identity.is_authenticated else None
+    anon_session_id = identity.anon_session_id
+
+    plan = await generate_practice_plan(user_id=user_id, anon_session_id=anon_session_id)
+
+    plan_dict = plan.to_dict()
+    plan_dict.pop("_id", None)
+
+    return {
+        "plan": plan_dict,
+        "has_plan": True,
+        "message": f"Generated a {plan.duration_days}-day plan targeting: {', '.join(plan.target_phonemes)}",
+    }

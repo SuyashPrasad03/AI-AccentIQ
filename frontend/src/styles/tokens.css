@@ -1,0 +1,87 @@
+/**
+ * AccentIQ Design Tokens — Single Source of Truth
+ * Phase 34: Extracted from live app styles, documented in design-system.md
+ *
+ * These tokens are consumed by Tailwind CSS v4 via the @theme block in index.css.
+ * This file serves as the canonical REFERENCE — the actual @theme block in index.css
+ * is what Tailwind reads. Keep them in sync.
+ *
+ * To modify the design system: edit index.css @theme, then update this reference.
+ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   COLOR TOKENS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Primary (deep maroon) — product actions, CTAs, links, badges */
+/* --color-primary: #991B1B */
+/* --color-primary-hover: #7F1D1D */
+/* --color-primary-soft: #FEF2F2 (tint background for badges/pills) */
+/* --color-primary-dark: #7F1D1D */
+
+/* Secondary (brighter brick-red) — emphasis, secondary actions */
+/* --color-secondary: #B91C1C */
+/* --color-secondary-soft: #FEF2F2 */
+/* --color-secondary-hover: #991B1B */
+
+/* Backgrounds */
+/* --color-bg: #FFFFFF (main page background) */
+/* --color-bg-soft: #F5F7FF (section wash / card backgrounds) */
+
+/* Text */
+/* --color-ink: #111827 (primary text) */
+/* --color-ink-muted: #6B7280 (secondary/description text) */
+/* --color-ink-faint: #9CA3AF (timestamps, metadata) */
+
+/* Borders */
+/* --color-border: #E5E9FF */
+/* --color-border-soft: #F0F2FF */
+
+/* Glass (backdrop blur surfaces) */
+/* --color-glass: rgba(255, 255, 255, 0.85) */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TYPOGRAPHY TOKENS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* --font-display: 'Plus Jakarta Sans', -apple-system, sans-serif (headings, buttons) */
+/* --font-body: 'Inter', -apple-system, sans-serif (body text, descriptions) */
+/* --font-mono: 'IBM Plex Mono', monospace (code, phoneme display) */
+
+/* Type scale (use Tailwind classes):
+   Hero:        text-5xl font-display font-extrabold tracking-tight
+   H1:          text-2xl font-display font-bold
+   H2:          text-xl font-display font-bold
+   Body:        text-base font-body text-ink-muted
+   Micro label: text-xs font-display font-semibold uppercase tracking-wider text-primary
+*/
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SPACING & RADIUS TOKENS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* --radius-sm: 8px (inputs, small pills) */
+/* --radius-md: 12px (buttons, cards) */
+/* --radius-lg: 16px (large cards, sections) */
+/* --radius-xl: 20px (modals, hero cards) */
+/* --radius-pill: 999px (fully rounded pills, status dots) */
+
+/* Section spacing: py-16 (6rem vertical padding between major sections) */
+/* Card gap: gap-6 (1.5rem between cards in a grid) */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SHADOW TOKENS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* --shadow-sm: 0 2px 8px rgba(153, 27, 27, 0.04) (subtle card shadow) */
+/* --shadow-md: 0 4px 24px rgba(153, 27, 27, 0.06) (elevated cards on hover) */
+/* --shadow-lg: 0 8px 32px rgba(153, 27, 27, 0.08) (modals, dropdowns) */
+/* --shadow-xl: 0 16px 48px rgba(153, 27, 27, 0.10) (hero elements) */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ANIMATION TOKENS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* --animate-fade-in: fade-in 0.4s ease-out forwards */
+/* --animate-slide-up: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards */
+/* --animate-scale-in: scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards */

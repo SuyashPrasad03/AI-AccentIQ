@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { uploadRecording } from "../../api/recordings.js";
-import { fetchQuota } from "../../store/quotaSlice.js";
+import { fetchQuota, selectQuota } from "../../store/quotaSlice.js";
+import { selectIsAuthenticated } from "../../store/authSlice.js";
 import { Waveform } from "../../components/waveform/Waveform.jsx";
 import { ResultsView } from "../scoring/ResultsView.jsx";
 import { ProcessingStatus } from "../scoring/ProcessingStatus.jsx";
@@ -13,6 +14,8 @@ const MAX_DURATION = 45;
 
 export function AudioUploader() {
   const dispatch = useDispatch();
+  const quota = useSelector(selectQuota);
+  const isAuth = useSelector(selectIsAuthenticated);
   const [mode, setMode] = useState("idle");
   const [duration, setDuration] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
@@ -158,21 +161,35 @@ export function AudioUploader() {
   }
 
   // ── Idle — Dashboard ────────────────────────────────────
+  // Check if quota is exhausted (anonymous users only)
+  const quotaExhausted = !isAuth && quota.status === "succeeded" && quota.remaining <= 0;
+
   return (
     <div className="flex flex-col gap-6">
       {/* Stats strip */}
       <StatsStrip history={history} />
 
+      {/* Quota exhausted banner */}
+      {quotaExhausted && (
+        <div className="bg-danger-soft border border-danger/20 rounded-[var(--radius-lg)] px-5 py-3.5">
+          <p className="text-sm text-danger font-medium">
+            You have used all {quota.limit} free analyses. Please register to continue.
+          </p>
+        </div>
+      )}
+
       {/* Upload card — elevated, tinted */}
       <div
-        className={`relative overflow-hidden rounded-[var(--radius-card)] border-2 border-dashed transition-all cursor-pointer
+        className={`relative overflow-hidden rounded-[var(--radius-card)] border-2 border-dashed transition-all
+          ${quotaExhausted ? "opacity-50 pointer-events-none cursor-not-allowed" : "cursor-pointer"}
           ${dragOver ? "border-primary bg-primary-soft shadow-lg" : "border-primary/30 bg-bg-soft hover:border-primary/60 hover:shadow-card"}`}
-        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragOver={(e) => { if (!quotaExhausted) { e.preventDefault(); setDragOver(true); } }}
         onDragLeave={() => setDragOver(false)}
-        onDrop={handleDrop}
-        onClick={() => document.getElementById("file-input").click()}
-        role="button" tabIndex={0}
-        onKeyDown={(e) => { if (e.key === "Enter") document.getElementById("file-input").click(); }}
+        onDrop={(e) => { if (!quotaExhausted) handleDrop(e); else e.preventDefault(); }}
+        onClick={() => { if (!quotaExhausted) document.getElementById("file-input").click(); }}
+        role="button" tabIndex={quotaExhausted ? -1 : 0}
+        onKeyDown={(e) => { if (e.key === "Enter" && !quotaExhausted) document.getElementById("file-input").click(); }}
+        aria-disabled={quotaExhausted}
       >
         <div className="relative z-10 flex flex-col items-center py-12 gap-3">
           <div className="w-14 h-14 rounded-full bg-primary-soft flex items-center justify-center mb-1">
@@ -189,8 +206,8 @@ export function AudioUploader() {
       </div>
 
       {/* Record button */}
-      <button className="btn-primary w-full py-4 text-base" onClick={startRecording}>
-        🎤 Record with microphone
+      <button className="btn-primary w-full py-4 text-base" onClick={startRecording} disabled={quotaExhausted}>
+        {quotaExhausted ? "🚫 Free analyses used — register to continue" : "🎤 Record with microphone"}
       </button>
 
       {/* Tip for best results */}

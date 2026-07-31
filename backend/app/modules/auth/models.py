@@ -33,6 +33,9 @@ class User(Base):
     # Soft-delete: PII zeroed during hard-delete in Phase 10; row kept for audit trail
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
+    # Phase 28: Optional native language for L1-adaptive feedback
+    native_language: Mapped[str | None] = mapped_column(String(50), nullable=True)
+
     # Relationships
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
